@@ -17,9 +17,9 @@ typedef unsigned int uint;
  * 
  * @param aspectRatioX width of new window
  * @param aspectRatioY height of new window
- * @return Vector2: x - new width, y - new height
+ * 
  */
-Vector2 ResizeWindow(const float scalingIndex, const uint aspectRatioX, const uint aspectRatioY);
+void ResizeWindow(const float scalingIndex, const uint aspectRatioX, const uint aspectRatioY);
 
 class Stopwatch{
 private:

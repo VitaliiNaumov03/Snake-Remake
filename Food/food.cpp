@@ -1,28 +1,115 @@
 #include "Food.hpp"
 
-Food::Food(const uint size, const Vector2 position) :
+#define APPEARANCE_SPEED (size * 6)
+#define IDLE_AMPLITUDE 0.15f //Amplitude of oscillations in "Idle" state (15% from size)
+#define IDLE_FREQUENCY 7.0f //Frequency of oscillations in "Idle" state (radians/second)
+
+Food::Food(const Texture2D *texture, const uint eatingPoins, const uint size, const float rotation) :
+    eatingPoints(eatingPoins),
     size(size),
-    rotation(0.0f),
-    position(position){}
+    currSize(0),
+    rotation(rotation),
+    currRotation(0),
+    texture(texture),
+    currState(State::Unactive){}
 
-void Food::LoadTexture(const char* filePath){
-    texture = LoadTextureFromImage(LoadImage(filePath));
-}
-
-uint Food::GetRadius() const{ return size; }
+uint Food::GetRadius() const{ return static_cast<uint>(roundf(size / 2.0f)); }
 Vector2 Food::GetPosition() const{ return position; }
 
-void Food::Update(){
+void Food::AppearingAnimation(){
+    static const uint speed = APPEARANCE_SPEED;
+    if (currSize < (float)size){
+        currSize += speed * GetFrameTime();
+    }
+    else{
+        currSize = size;
+        currState = State::Idle;
+    }
+}
+
+void Food::DisappearingAnimation(){
+    static const uint speed = APPEARANCE_SPEED;
+    if (currSize > 0){
+        currSize -= speed * GetFrameTime();
+    }
+    else{
+        currSize = 0;
+        currState = State::Unactive;
+    }
+}
+
+void Food::IdleAnimation(){
+    animationStopwatch.Tick();
+    static const float resetPeriod = 2.0f * PI / IDLE_FREQUENCY; //Stopwatch reset period to avoid float overflow
+    if (animationStopwatch.GetElapsedTimeS() >= resetPeriod)
+        animationStopwatch.Reset();
     
+    currSize = size * (1.0f + IDLE_AMPLITUDE * sinf(IDLE_FREQUENCY * animationStopwatch.GetElapsedTimeS()));
+}
+
+void Food::UnactiveLogic(){
+    currState = State::Appearing;
+    animationStopwatch.Reset();
+}
+
+void Food::GenerateNewPosition(){
+    position = {
+        (float)GetRandomValue(GetRadius(), GetScreenWidth() - GetRadius()),
+        (float)GetRandomValue(GetRadius(), GetScreenHeight() - GetRadius())
+    };
+}
+
+bool Food::WillSpawnNow() const{
+    return currSize == 0 && currState == State::Appearing;
+}
+
+bool Food::IsActive() const{
+    return currState == State::Appearing || currState == State::Idle;
+}
+
+void Food::Disappear(){
+    currState = State::Disappearing;
+}
+
+uint Food::Eat(){
+    Disappear();
+    return eatingPoints;
+}
+
+void Food::Reset(){
+    currSize = 0;
+    currState = State::Unactive;
+}
+
+void Food::Update(){
+    switch (currState){
+        case State::Appearing:
+            AppearingAnimation();
+            break;
+
+        case State::Disappearing:
+            DisappearingAnimation();
+            break;
+
+        case State::Idle:
+            IdleAnimation();
+            break;
+
+        case State::Unactive:
+            UnactiveLogic();
+            break;
+    }
 }
 
 void Food::Draw() const{
-    DrawTexturePro(
-        texture,
-        {0.0f, 0.0f, (float)texture.width, (float)-texture.height},
-        {position.x, position.y, (float)size, (float)size},
-        {(float)size / 2.0f, (float)size / 2.0f},
-        rotation,
-        WHITE
-    );
+    if (currState != State::Unactive){
+        DrawTexturePro(
+            *texture,
+            {0.0f, 0.0f, (float)texture->width, (float)texture->height},
+            {position.x, position.y, (float)currSize, (float)currSize},
+            {(float)currSize / 2.0f, (float)currSize / 2.0f},
+            currRotation,
+            WHITE
+        );
+    }
 }

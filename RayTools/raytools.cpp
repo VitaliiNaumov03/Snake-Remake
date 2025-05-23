@@ -2,23 +2,23 @@
 #include <random>
 #include <chrono>
 
-Vector2 ResizeWindow(const float scalingIndex, const uint aspectRatioX, const uint aspectRatioY){
+void ResizeWindow(const float scalingIndex, const uint aspectRatioX, const uint aspectRatioY){
     const float aspectRatio = (float)aspectRatioY / aspectRatioX;
     const uint monitorWidth = GetMonitorWidth(GetCurrentMonitor());
     const uint monitorHeight = GetMonitorHeight(GetCurrentMonitor());
 
-    float newWidth = monitorWidth / scalingIndex;
-    float newHeight = monitorHeight / scalingIndex;
+    uint newWidth = monitorWidth / scalingIndex;
+    uint newHeight = monitorHeight / scalingIndex;
+    newWidth += newWidth % 2;
+    newHeight += newHeight % 2;
 
-    if (newWidth * aspectRatio > newHeight)
-        newWidth = newHeight / aspectRatio;
-    else
-        newHeight = newWidth * aspectRatio;
+    if (newWidth / aspectRatio > monitorHeight)
+        newWidth = newHeight * aspectRatio;
+    else if (monitorHeight > monitorWidth)
+        newHeight = newWidth / aspectRatio;
     
     SetWindowSize(newWidth, newHeight);
     SetWindowPosition((monitorWidth - newWidth) / 2, (monitorHeight - newHeight) / 2);
-
-    return (Vector2){newWidth, newHeight};
 }
 
 Stopwatch::Stopwatch() : elapsedTime(0.0f){};

@@ -104,18 +104,20 @@ void Head::RotatePupils(const Vector2 &pupilsFollowTarget){
         radius / 2.0f * sinf(angleOfMovement)
     };
 
+    static const float offset2 = EYES_RADIUS - PUPILS_RADIUS;
+
     //Left pupil
     const float angleL = atan2(pupilsFollowTarget.y - pupils[0].y, pupilsFollowTarget.x - pupils[0].x);
     pupils[0] = {
-        roundf(position.x - offset.x + eyesPosition * cosf(angleOfMovement - HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * cosf(angleL)),
-        roundf(position.y - offset.y + eyesPosition * sinf(angleOfMovement - HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * sinf(angleL))
+        roundf(position.x - offset.x + eyesPosition * cosf(angleOfMovement - HALF_PI) + offset2 * cosf(angleL)),
+        roundf(position.y - offset.y + eyesPosition * sinf(angleOfMovement - HALF_PI) + offset2 * sinf(angleL))
     };
 
     //Right pupil
     const float angleR = atan2(pupilsFollowTarget.y - pupils[1].y, pupilsFollowTarget.x - pupils[1].x);
     pupils[1] = {
-        roundf(position.x - offset.x + eyesPosition * cosf(angleOfMovement + HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * cosf(angleR)),
-        roundf(position.y - offset.y + eyesPosition * sinf(angleOfMovement + HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * sinf(angleR))
+        roundf(position.x - offset.x + eyesPosition * cosf(angleOfMovement + HALF_PI) + offset2 * cosf(angleR)),
+        roundf(position.y - offset.y + eyesPosition * sinf(angleOfMovement + HALF_PI) + offset2 * sinf(angleR))
     };
 }
 

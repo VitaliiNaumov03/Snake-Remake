@@ -1,17 +1,25 @@
 #include "Functions/functions.hpp"
 
-#define COLORS_JSON_PATH "Resources/colors.json"
-
 int main(){
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(0, 0, "Snake Remake");
+    ResizeWindow(1.5, 1, 1);
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
-    const uint windowSize = ResizeWindow(1.6, 1, 1).x;
     
-    ColorController colorController; //SwitchToNextColor() вручную в функции (Snake не контролит)
-    colorController.LoadColorsFrom(COLORS_JSON_PATH);
-    
-    MainGame(windowSize, &colorController);
+    ResourceManager::GetInstance().LoadAllTextures();
+    ColorController::GetInstance().LoadColorsFrom("Resources/colors.json");
+
+    std::shared_ptr<Snake> snake;
+    std::array<Food, 3> food = CreateFood();
+
+    while(!WindowShouldClose()){
+        snake = CreateSnake();
+        MainGame(snake, &food[0], &food[1], &food[2]);
+        SnakeDead(snake, food);
+        for (Food &food : food)
+            food.Reset();
+        ColorController::GetInstance().SwitchToNextColor();
+    }
     
     CloseWindow();
     return 0;

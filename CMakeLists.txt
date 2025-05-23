@@ -16,6 +16,7 @@ set(SOURCE_DIRS
     Food
     Snake
     ColorController
+    ResourceManager
     RayTools)
 
 set(EXECUTABLE_NAME "Snake Remake")

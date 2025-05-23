@@ -2,5 +2,4 @@
 .vscode
 build
 CMakeFiles
-InputHandler
 CMakeCache.txt

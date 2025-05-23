@@ -5,14 +5,14 @@
 #define SHAKE_DURATION_MS 150.0f
 #define SHAKE_INTENSITY roundf(radius / 10.0f)
 
-Snake::Snake(Vector2 startPosition, uint startLength, const uint radius, const uint segmentsGap, const uint speed, ColorController *colContr) :
+Snake::Snake(Vector2 startPosition, uint startLength, const uint radius, const uint segmentsGap, const uint speed) :
     radius(radius),
     segmentsGap(segmentsGap),
     speed(speed),
     angleOfMovement(3 * HALF_PI),
     currShakeIntensity(0),
     shakeInterval(1.0f / SHAKES_PER_SECOND), //So that the first shake starts without pause
-    colContr(colContr),
+    colContr(&ColorController::GetInstance()),
     head(startPosition, radius, angleOfMovement, colContr->GetColorFor(0)),
     tongue(startPosition, radius, angleOfMovement, speed * 0.4f){
 
@@ -68,6 +68,14 @@ bool Snake::BitesItself() const{
     return false;
 }
 
+bool Snake::CollidesWith(const Vector2 &point) const{
+    for (const Vector2 &segment : body){
+        if (CheckCollisionPointCircle(point, segment, radius))
+            return true;
+    }
+    return false;
+}
+
 void Snake::Kill(const CauseOfDeath causeOfDeath){
     head.Kill();
     deadPoint = {
@@ -89,23 +97,23 @@ void Snake::Update(const Vector2 &destination, const Vector2 &pupilsFollowTarget
     tongue.Update(body[0], angleOfMovement);
 }
 
+//Returns false when animation is finished
 bool Snake::UpdateDead(){
     switch (causeOfDeath){
         case CauseOfDeath::AtePoison:{
-            RotateAndMoveHead(deadPoint, radius, speed);
+            if (Vector2Distance(body[0], deadPoint) == radius) return false;
 
+            RotateAndMoveHead(deadPoint, radius, speed);
             for (uint i = 1; i < body.size(); ++i)
                 RotateAndMove(body[i], body[i - 1], segmentsGap);
             
             head.Update(body[0], angleOfMovement, {0.0f, 0.0f});
             tongue.UpdateDead(body[0], angleOfMovement);
         
-            if (Vector2Distance(body[0], deadPoint) != radius) return true;
-            else return false;
+            return true;
         }
 
         case CauseOfDeath::BitItself:{
-            shakeAnimation.Tick();
             if (shakeAnimation.GetElapsedTimeMs() >= SHAKE_DURATION_MS){
                 currShakeIntensity = 0;
 
@@ -116,6 +124,7 @@ bool Snake::UpdateDead(){
                 return false;
             }
             else{
+                shakeAnimation.Tick();
                 shakeInterval.Tick();
                 if (shakeInterval.GetElapsedTimeS() >= 1.0f / SHAKES_PER_SECOND){
                     head.Update({body[0].x + currShakeIntensity, body[0].y}, angleOfMovement, {0.0f, 0.0f});
@@ -127,7 +136,7 @@ bool Snake::UpdateDead(){
             }
         }
         
-        default: return true;
+        default: return false;
     }
 }
 

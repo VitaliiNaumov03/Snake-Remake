@@ -2,6 +2,11 @@
 
 #define RANDOM_VALUE GetRandomValue(0, colorPairs.size() - 1)
 
+ColorController &ColorController::GetInstance(){
+    static ColorController instance;
+    return instance;
+}
+
 void ColorController::LoadColorsFrom(const std::string jsonFileName){
     if (!FileExists(jsonFileName.c_str()))
         throw std::runtime_error("File not found: " + jsonFileName);
@@ -62,10 +67,10 @@ void ColorController::LoadColorsFrom(const std::string jsonFileName){
 void ColorController::UpdateSnakeLength(const uint newLength){
     colorCache.clear();
     colorCache.reserve(newLength);
-    Color newColor;
-
+    
     colorCache.emplace_back(colorPairs[curr][0]);
-
+    
+    Color newColor;
     for (uint i = 1; i < newLength - 1; ++i){
         newColor = ColorLerp(colorPairs[curr][0], colorPairs[curr][1], (float)i / newLength);
         colorCache.emplace_back(newColor);
