@@ -10,14 +10,14 @@ int main(){
     ColorController::GetInstance().LoadColorsFrom("Resources/colors.json");
 
     std::shared_ptr<Snake> snake;
-    std::array<Food, 3> food = CreateFood();
+    std::array<std::unique_ptr<Food>, 3> food = CreateFood();
 
     while(!WindowShouldClose()){
         snake = CreateSnake();
-        MainGame(snake, &food[0], &food[1], &food[2]);
+        MainGame(snake, food);
         SnakeDead(snake, food);
-        for (Food &food : food)
-            food.Reset();
+        for (auto &food : food)
+            food->Reset();
         ColorController::GetInstance().SwitchToNextColor();
     }
     

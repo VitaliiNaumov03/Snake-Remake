@@ -14,7 +14,7 @@ void ResizeWindow(const float scalingIndex, const uint aspectRatioX, const uint 
 
     if (newWidth / aspectRatio > monitorHeight)
         newWidth = newHeight * aspectRatio;
-    else if (monitorHeight > monitorWidth)
+    else //For 4:3 and vertical monitors
         newHeight = newWidth / aspectRatio;
     
     SetWindowSize(newWidth, newHeight);

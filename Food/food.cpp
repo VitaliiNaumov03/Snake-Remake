@@ -1,8 +1,4 @@
-#include "Food.hpp"
-
-#define APPEARANCE_SPEED (size * 6)
-#define IDLE_AMPLITUDE 0.15f //Amplitude of oscillations in "Idle" state (15% from size)
-#define IDLE_FREQUENCY 7.0f //Frequency of oscillations in "Idle" state (radians/second)
+#include "food.hpp"
 
 Food::Food(const Texture2D *texture, const uint eatingPoins, const uint size, const float rotation) :
     eatingPoints(eatingPoins),
@@ -34,6 +30,7 @@ void Food::DisappearingAnimation(){
     }
     else{
         currSize = 0;
+        animationStopwatch.Reset();
         currState = State::Unactive;
     }
 }
@@ -47,10 +44,7 @@ void Food::IdleAnimation(){
     currSize = size * (1.0f + IDLE_AMPLITUDE * sinf(IDLE_FREQUENCY * animationStopwatch.GetElapsedTimeS()));
 }
 
-void Food::UnactiveLogic(){
-    currState = State::Appearing;
-    animationStopwatch.Reset();
-}
+void Food::UnactiveLogic(){ currState = State::Appearing; }
 
 void Food::GenerateNewPosition(){
     position = {
