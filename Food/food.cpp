@@ -3,9 +3,9 @@
 Food::Food(const Texture2D *texture, const uint eatingPoins, const uint size, const float rotation) :
     eatingPoints(eatingPoins),
     size(size),
-    currSize(0),
+    currSize(0.0f),
     rotation(rotation),
-    currRotation(0),
+    currRotation(0.0f),
     texture(texture),
     currState(State::Unactive){}
 
@@ -13,9 +13,8 @@ uint Food::GetRadius() const{ return static_cast<uint>(roundf(size / 2.0f)); }
 Vector2 Food::GetPosition() const{ return position; }
 
 void Food::AppearingAnimation(){
-    static const uint speed = APPEARANCE_SPEED;
     if (currSize < (float)size){
-        currSize += speed * GetFrameTime();
+        currSize += APPEARANCE_SPEED * GetFrameTime();
     }
     else{
         currSize = size;
@@ -24,12 +23,11 @@ void Food::AppearingAnimation(){
 }
 
 void Food::DisappearingAnimation(){
-    static const uint speed = APPEARANCE_SPEED;
-    if (currSize > 0){
-        currSize -= speed * GetFrameTime();
+    if (currSize > 0.0f){
+        currSize -= APPEARANCE_SPEED * GetFrameTime();
     }
     else{
-        currSize = 0;
+        currSize = 0.0f;
         animationStopwatch.Reset();
         currState = State::Unactive;
     }
@@ -72,6 +70,7 @@ uint Food::Eat(){
 
 void Food::Reset(){
     currSize = 0;
+    currRotation = 0;
     currState = State::Unactive;
 }
 

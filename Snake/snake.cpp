@@ -51,6 +51,8 @@ void Snake::RotateAndMoveHead(const Vector2 &destination, const uint targetDista
     }
 }
 
+uint Snake::GetRadius() const{ return radius; }
+uint Snake::GetLength() const{ return body.size(); }
 bool Snake::IsAlive() const{ return head.IsAlive(); }
 
 bool Snake::Bites(const Vector2 &circleCenter, const float circleRadius) const{
@@ -68,12 +70,16 @@ bool Snake::BitesItself() const{
     return false;
 }
 
-bool Snake::CollidesWith(const Vector2 &point) const{
+bool Snake::BodyCollidesWith(const Vector2 &point) const{
     for (const Vector2 &segment : body){
         if (CheckCollisionPointCircle(point, segment, radius))
             return true;
     }
     return false;
+}
+
+void Snake::Grow(const uint numOfNewSegments){
+    body.insert(body.end(), numOfNewSegments, body.back());
 }
 
 void Snake::Kill(const CauseOfDeath causeOfDeath){
@@ -101,7 +107,7 @@ void Snake::Update(const Vector2 &destination, const Vector2 &pupilsFollowTarget
 bool Snake::UpdateDead(){
     switch (causeOfDeath){
         case CauseOfDeath::AtePoison:{
-            if (Vector2Distance(body[0], deadPoint) == radius) return false;
+            if (static_cast<uint>(Vector2Distance(body[0], deadPoint)) == radius) return false;
 
             RotateAndMoveHead(deadPoint, radius, speed);
             for (uint i = 1; i < body.size(); ++i)

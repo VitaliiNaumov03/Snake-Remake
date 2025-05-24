@@ -4,8 +4,15 @@
 #include <stdexcept>
 
 #define APPEARANCE_SPEED (size * 6)
+#define ROTATION_SPEED (size * 9)
+#define IDLE_TIME_S 3.0f
 #define IDLE_AMPLITUDE 0.15f //Amplitude of oscillations in "Idle" state (15% from size)
 #define IDLE_FREQUENCY 7.0f //Frequency of oscillations in "Idle" state (radians/second)
+
+//For BigFood and Poison
+#define MIN_UNACTIVE_TIME_S 7
+#define MAX_UNACTIVE_TIME_S 15
+#define GET_UNACTIVE_TIME_S (float)GetRandomValue(MIN_UNACTIVE_TIME_S, MAX_UNACTIVE_TIME_S)
 
 class Food{
 protected:
@@ -49,4 +56,19 @@ private:
 public:
     BigFood(const Texture2D *texture, const uint eatingPoins, const uint size);
     ~BigFood() override = default;
+};
+
+class Poison : public Food{
+private:
+    float unactiveTimeS;
+    Stopwatch rotationStopwatch;
+
+    void Rotate();
+    void AppearingAnimation() override;
+    void DisappearingAnimation() override;
+    void IdleAnimation() override;
+    void UnactiveLogic() override;
+public:
+    Poison(const Texture2D *texture, const uint eatingPoins, const uint size, const float rotation);
+    ~Poison() override = default;
 };

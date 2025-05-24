@@ -21,37 +21,43 @@ std::array<std::unique_ptr<Food>, 3> CreateFood(){
     return {
         std::make_unique<Food>(&resMan.Get(ResourceManager::TextureID::Food), 1, SNAKE_RADIUS * 2),
         std::make_unique<BigFood>(&resMan.Get(ResourceManager::TextureID::BigFood), 2, SNAKE_RADIUS * 3),
-        std::make_unique<Food>(&resMan.Get(ResourceManager::TextureID::Food), 1, SNAKE_RADIUS * 2)
+        std::make_unique<Poison>(&resMan.Get(ResourceManager::TextureID::Poison), 0, SNAKE_RADIUS * 2, 30.0f)
     };
 }
 
 void GenerateNewFoodPosition(Food *const food, std::shared_ptr<Snake> snake){
     do {
         food->GenerateNewPosition();
-    } while (snake->CollidesWith(food->GetPosition()));
+    } while (snake->BodyCollidesWith(food->GetPosition()));
 }
 
 void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food){
-    //Start position for food
-    for (uint i = 0; i < food.size() - 1; ++i){
-        GenerateNewFoodPosition(food[i].get(), snake);
-    }
+    Vector2 mousePosition;
+
+    GenerateNewFoodPosition(food[0].get(), snake); //Start position for regular food
     
     while (!WindowShouldClose()){
-        for (uint i = 0; i < food.size() - 1; ++i){
+        mousePosition = GetMousePosition();
+        for (uint i = 0; i < food.size(); ++i)
             food[i]->Update();
-        }
+        snake->Update(mousePosition, food[1]->IsActive() ? food[1]->GetPosition() : food[0]->GetPosition());
 
-        snake->Update(GetMousePosition(), food[1]->IsActive() ? food[1]->GetPosition() : food[0]->GetPosition());
-
-        for (uint i = 0; i < food.size() - 1; ++i){
+        //Food update
+        for (uint i = 0; i < food.size(); ++i){
             if (food[i]->IsActive()){
                 if (food[i]->WillSpawnNow()){
                     GenerateNewFoodPosition(food[i].get(), snake);
                 }
                 
                 if (snake->Bites(food[i]->GetPosition(), food[i]->GetRadius())){
-                    food[i]->Disappear();
+                    if (i == 2){
+                        food[2]->Disappear();
+                        snake->Kill(Snake::CauseOfDeath::AtePoison);
+                        return;
+                    }
+                    const uint points = food[i]->Eat();
+                    snake->Grow(points);
+                    ColorController::GetInstance().UpdateSnakeLength(snake->GetLength());
                 }
             }
         }
@@ -63,9 +69,10 @@ void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3>
         
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            for (uint i = 0; i < food.size() - 1; ++i)
+            for (uint i = 0; i < food.size(); ++i)
                 food[i]->Draw();
             snake->Draw();
+            DrawCircleV(mousePosition, snake->GetRadius() / 2.0f, RED); //Cursor
             DrawFPS(0, 0);
         EndDrawing();
     }
@@ -77,17 +84,16 @@ void SnakeDead(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3
     while (!WindowShouldClose()){
         if (!snake->UpdateDead()){
             pause.Tick();
-            //Frame at 1.0 second must be drawn too, that's why > instead of >=
-            if (pause.GetElapsedTimeS() > 1.0f)
+            if (pause.GetElapsedTimeS() >= 1.0f)
                 return;
         }
 
-        for (uint i = 0; i < food.size() - 1; ++i)
+        for (uint i = 0; i < food.size(); ++i)
             food[i]->Update();
 
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            for (uint i = 0; i < food.size() - 1; ++i)
+            for (uint i = 0; i < food.size(); ++i)
                 food[i]->Draw();
             snake->Draw();
         EndDrawing();

@@ -14,10 +14,13 @@ public:
     Snake(const Vector2 position, const uint startLength, const uint radius, const uint segmentsGap, const uint speed);
     ~Snake() = default;
 
+    uint GetRadius() const;
+    uint GetLength() const;
     bool IsAlive() const;
     bool Bites(const Vector2 &center, const float radius) const;
     bool BitesItself() const;
-    bool CollidesWith(const Vector2 &point) const;
+    bool BodyCollidesWith(const Vector2 &point) const;
+    void Grow(const uint numOfNewSegments);
     void Kill(const CauseOfDeath causeOfDeath);
     void Update(const Vector2 &destination, const Vector2 &pupilsFollowTarget);
     bool UpdateDead(); //Returns false when death animation is finished

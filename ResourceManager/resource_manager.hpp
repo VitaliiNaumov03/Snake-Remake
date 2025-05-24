@@ -7,7 +7,7 @@
 //Made using Singleton pattern
 class ResourceManager{
 public:
-    enum class TextureID{ Food, BigFood, Cursor, Background };
+    enum class TextureID{ Food, BigFood, Poison, Background };
     static ResourceManager &GetInstance();
     void LoadAllTextures();
     const Texture2D &Get(TextureID id) const;
@@ -18,5 +18,5 @@ private:
     ResourceManager &operator=(const ResourceManager&) = delete;
 
     std::unordered_map<TextureID, Texture2D> textureMap;
-    Texture2D Load(const char *fileName);
+    Texture2D LoadT(const char *fileName);
 };

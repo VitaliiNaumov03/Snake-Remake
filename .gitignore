@@ -3,3 +3,6 @@
 build
 CMakeFiles
 CMakeCache.txt
+Resources/apple.png
+Resources/golden apple.png
+Resources/poison.png

@@ -8,5 +8,6 @@
 
 std::shared_ptr<Snake> CreateSnake();
 std::array<std::unique_ptr<Food>, 3> CreateFood();
+void GenerateNewFoodPosition(Food *const food, std::shared_ptr<Snake> snake);
 void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food);
 void SnakeDead(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food);

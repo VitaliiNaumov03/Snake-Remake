@@ -5,6 +5,7 @@ int main(){
     InitWindow(0, 0, "Snake Remake");
     ResizeWindow(1.5, 1, 1);
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
+    HideCursor();
     
     ResourceManager::GetInstance().LoadAllTextures();
     ColorController::GetInstance().LoadColorsFrom("Resources/colors.json");
