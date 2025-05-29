@@ -25,14 +25,15 @@ Tongue::Tongue(const Vector2 &headPosition, const uint length, const float start
         (float)height
     };
     tongueTexture = LoadRenderTexture(length, height);
-    SetTextureWrap(tongueTexture.texture, TEXTURE_WRAP_CLAMP);
-    SetTextureFilter(tongueTexture.texture, TEXTURE_FILTER_BILINEAR);
     BeginTextureMode(tongueTexture);
+        ClearBackground(Color{ color.r, color.g, color.b, 0 });
         const float halfHeight = height / 2.0f;
         DrawLineEx({0.0f, halfHeight}, {bifurcationPoint, halfHeight}, lineWidth, color);
         DrawLineEx({bifurcationPoint, halfHeight}, {topPoint.x, topPoint.y}, lineWidth, color);
         DrawLineEx({bifurcationPoint, halfHeight}, {bottomPoint.x, bottomPoint.y}, lineWidth, color);
     EndTextureMode();
+    SetTextureWrap(tongueTexture.texture, TEXTURE_WRAP_CLAMP);
+    SetTextureFilter(tongueTexture.texture, TEXTURE_FILTER_BILINEAR);
 }
 
 void Tongue::UpdateActive(const Vector2 &newHeadPosition, const float newAngle){

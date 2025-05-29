@@ -16,14 +16,24 @@ set(SOURCE_DIRS
     Food
     Snake
     ColorController
+    ScoreController
     ResourceManager
     RayTools)
 
-set(EXECUTABLE_NAME "Snake Remake")
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(EXECUTABLE_NAME "Snake Remake")
+else()
+    set(EXECUTABLE_NAME "Snake Remake (DEBUG)")
+endif()
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}) #.exe folder
 link_directories(${CMAKE_SOURCE_DIR}/Libs) #Libraries location
 
-set(SOURCES main.cpp)
+set(SOURCES
+    main.cpp
+    Compiling/resources.rc)
+
+#Adding all cpp files to SOURCES
 foreach(DIR ${SOURCE_DIRS})
     file(GLOB_RECURSE DIR_SOURCES "${CMAKE_SOURCE_DIR}/${DIR}/*.cpp")
     list(APPEND SOURCES ${DIR_SOURCES})

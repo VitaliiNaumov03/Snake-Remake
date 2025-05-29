@@ -4,8 +4,10 @@
 #include "../Food/food.hpp"
 #include "../ResourceManager/resource_manager.hpp"
 #include "../ColorController/color_controller.hpp"
+#include "../ScoreController/score_controller.hpp"
 #include <memory>
 
+void GenerateIcon(const uint size);
 std::shared_ptr<Snake> CreateSnake();
 std::array<std::unique_ptr<Food>, 3> CreateFood();
 void GenerateNewFoodPosition(Food *const food, std::shared_ptr<Snake> snake);

@@ -32,15 +32,22 @@ void Snake::RotateAndMove(Vector2 &origin, const Vector2 &destination, const uin
     }
 }
 
-void Snake::RotateAndMoveHead(const Vector2 &destination, const uint targetDistance, const float speed){
+void Snake::RotateAndMoveHead(Vector2 destination, uint targetDistance, const float speed){
+    angleOfMovement = atan2(destination.y - body[0].y, destination.x - body[0].x);
+    //Calculating point on targetDistance from destination
+    destination = {
+        destination.x + targetDistance * cosf(angleOfMovement + PI), //Using PI to invert angle
+        destination.y + targetDistance * sinf(angleOfMovement + PI)
+    };
+    targetDistance = radius; //Now targetDistance is the snake's radius
+    
     const float currDistance = Vector2Distance(body[0], destination);
 
-    if (currDistance > targetDistance){ //Make calculations only if they're needed
-        angleOfMovement = atan2(destination.y - body[0].y, destination.x - body[0].x);
+    if (currDistance > targetDistance){ //If distance between mouth and new destination bigger that snake's radius
         const float deltaTime = GetFrameTime();
 
         if (currDistance <= LERP_AREA){ //In this area, the head moves not at a constant speed, but with a lerp
-            const float lerpSpeed = speed * 0.03f / (radius / 12.0f);
+            static const float lerpSpeed = speed * 0.03f / (radius / 12.0f);
             const float lerpCoeff = 1.0f - expf(-lerpSpeed * deltaTime); //This is needed for FPS independence
             body[0] = Vector2Lerp(body[0], destination, lerpCoeff);
         }
@@ -92,14 +99,14 @@ void Snake::Kill(const CauseOfDeath causeOfDeath){
     if (causeOfDeath == CauseOfDeath::BitItself) currShakeIntensity = SHAKE_INTENSITY;
 }
 
-void Snake::Update(const Vector2 &destination, const Vector2 &pupilsFollowTarget){
+void Snake::Update(const Vector2 &destination, const uint targetDistance, const Vector2 &pupilsFollowTarget){
     //Body
-    RotateAndMoveHead(destination, radius, speed);
+    RotateAndMoveHead(destination, targetDistance, speed);
     for (uint i = 1; i < body.size(); ++i)
         RotateAndMove(body[i], body[i - 1], segmentsGap);
     
     //Head
-    head.Update(body[0], angleOfMovement, pupilsFollowTarget); //TODO: заменить destination на настоящий pupilsFollowTarget
+    head.Update(body[0], angleOfMovement, pupilsFollowTarget);
     tongue.Update(body[0], angleOfMovement);
 }
 
@@ -109,7 +116,7 @@ bool Snake::UpdateDead(){
         case CauseOfDeath::AtePoison:{
             if (static_cast<uint>(Vector2Distance(body[0], deadPoint)) == radius) return false;
 
-            RotateAndMoveHead(deadPoint, radius, speed);
+            RotateAndMoveHead(deadPoint, 0, speed);
             for (uint i = 1; i < body.size(); ++i)
                 RotateAndMove(body[i], body[i - 1], segmentsGap);
             

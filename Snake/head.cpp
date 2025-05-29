@@ -25,17 +25,16 @@ Head::Head(const Vector2 &startPosition, const uint radius, const float startAng
     const auto eyes = CalculateEyesPosition();
     RotatePupils({ 0.0f, 0.0f }); //Initializes base position
     RotatePupils({ //Rotates forward
-        position.x + textureSize.x * 2 * cosf(angleOfMovement),
-        position.y + textureSize.y * 2 * sinf(angleOfMovement)
+        position.x + textureSize.x * cosf(angleOfMovement),
+        position.y + textureSize.y * sinf(angleOfMovement)
     });
     
     //NOSTRILS
     const uint nostrilsRadius = roundf(radius * 0.083f);
     const auto nostrils = CalculateNostrilsPosition();
 
-    SetTextureWrap(headTexture.texture, TEXTURE_WRAP_CLAMP);
-    SetTextureFilter(headTexture.texture, TEXTURE_FILTER_BILINEAR);
     BeginTextureMode(headTexture);
+        ClearBackground(Color{ color.r, color.g, color.b, 0 });
         DrawCircle(textureSize.x - radius, textureSize.y / 2.0f, radius, color); //Head circle
         for (uint i = 0; i < 2; ++i){
             DrawCircle(eyes[i].x, eyes[i].y, EYES_BACK_RADIUS, color);
@@ -43,6 +42,8 @@ Head::Head(const Vector2 &startPosition, const uint radius, const float startAng
             DrawCircle(nostrils[i].x, nostrils[i].y, nostrilsRadius, DARKGRAY);
         }
     EndTextureMode();
+    SetTextureWrap(headTexture.texture, TEXTURE_WRAP_CLAMP);
+    SetTextureFilter(headTexture.texture, TEXTURE_FILTER_BILINEAR);
 }
 
 const std::array<Vector2, 2> Head::CalculateEyesPosition() const{
@@ -104,20 +105,18 @@ void Head::RotatePupils(const Vector2 &pupilsFollowTarget){
         radius / 2.0f * sinf(angleOfMovement)
     };
 
-    static const float offset2 = EYES_RADIUS - PUPILS_RADIUS;
-
     //Left pupil
     const float angleL = atan2(pupilsFollowTarget.y - pupils[0].y, pupilsFollowTarget.x - pupils[0].x);
     pupils[0] = {
-        roundf(position.x - offset.x + eyesPosition * cosf(angleOfMovement - HALF_PI) + offset2 * cosf(angleL)),
-        roundf(position.y - offset.y + eyesPosition * sinf(angleOfMovement - HALF_PI) + offset2 * sinf(angleL))
+        roundf(position.x - offset.x + eyesPosition * cosf(angleOfMovement - HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * cosf(angleL)),
+        roundf(position.y - offset.y + eyesPosition * sinf(angleOfMovement - HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * sinf(angleL))
     };
 
     //Right pupil
     const float angleR = atan2(pupilsFollowTarget.y - pupils[1].y, pupilsFollowTarget.x - pupils[1].x);
     pupils[1] = {
-        roundf(position.x - offset.x + eyesPosition * cosf(angleOfMovement + HALF_PI) + offset2 * cosf(angleR)),
-        roundf(position.y - offset.y + eyesPosition * sinf(angleOfMovement + HALF_PI) + offset2 * sinf(angleR))
+        roundf(position.x - offset.x + eyesPosition * cosf(angleOfMovement + HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * cosf(angleR)),
+        roundf(position.y - offset.y + eyesPosition * sinf(angleOfMovement + HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * sinf(angleR))
     };
 }
 

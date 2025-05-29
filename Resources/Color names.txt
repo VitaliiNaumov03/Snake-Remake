@@ -1,0 +1,10 @@
+"Blue",
+"Coral",
+"Purple",
+"Brown",
+"Blue-Yellow",
+"Turquoise Purple",
+"Fiery",
+"Lavender",
+"Green",
+"Dark Blue"

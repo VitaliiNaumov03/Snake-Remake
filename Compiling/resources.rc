@@ -1,0 +1,4 @@
+#include "winres.h"
+
+APP_ICON ICON "icon.ico"
+#include "versioninfo.rc"

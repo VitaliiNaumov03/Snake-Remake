@@ -10,18 +10,5 @@
         [[222, 184, 245], [186, 66, 192]],
         [[74, 155, 127], [10, 52, 49]],
         [[85, 124, 147], [21, 47, 76]]
-    ],
-    
-    "color names (not used by the game, for better understanding only)": [
-        "Blue",
-        "Coral",
-        "Purple",
-        "Brown",
-        "Blue-Yellow",
-        "Turquoise Purple",
-        "Fiery",
-        "Lavender",
-        "Green",
-        "Dark Blue"
     ]
 }

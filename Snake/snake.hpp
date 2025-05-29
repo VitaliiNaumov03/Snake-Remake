@@ -22,7 +22,7 @@ public:
     bool BodyCollidesWith(const Vector2 &point) const;
     void Grow(const uint numOfNewSegments);
     void Kill(const CauseOfDeath causeOfDeath);
-    void Update(const Vector2 &destination, const Vector2 &pupilsFollowTarget);
+    void Update(const Vector2 &destination, const uint targetDistance, const Vector2 &pupilsFollowTarget);
     bool UpdateDead(); //Returns false when death animation is finished
     void Draw() const;
 private:
@@ -44,5 +44,5 @@ private:
     std::vector<Vector2> body;
 
     void RotateAndMove(Vector2 &origin, const Vector2 &destination, const uint targetDistance);
-    void RotateAndMoveHead(const Vector2 &destination, const uint targetDistance, const float targetSpeed);
+    void RotateAndMoveHead(Vector2 destination, uint targetDistance, const float targetSpeed);
 };
