@@ -4,7 +4,6 @@ ResourceManager::~ResourceManager(){
     for (auto& [id, texture] : textureMap)
         UnloadTexture(texture);
     textureMap.clear();
-    UnloadF();
 }
 
 ResourceManager &ResourceManager::GetInstance(){
@@ -12,42 +11,36 @@ ResourceManager &ResourceManager::GetInstance(){
     return instance;
 }
 
-Texture2D ResourceManager::LoadT(const std::string fileName){
+void ResourceManager::LoadT(TextureID id, const std::string fileName, TextureFilter filter){
     if (!FileExists(fileName.c_str()))
         throw std::runtime_error(fileName + " doesn't exist");
     
-    Texture2D texture = LoadTexture(fileName.c_str());
-    if (!IsTextureValid(texture))
-        throw std::runtime_error(std::string("Unable to load texture from ") + fileName);
-    GenTextureMipmaps(&texture);
-    SetTextureFilter(texture, TEXTURE_FILTER_BILINEAR);
-    SetTextureWrap(texture, TEXTURE_WRAP_CLAMP);
-    return texture;
+    if (textureMap.find(id) == textureMap.end()){ //If texture hasn't been loaded yet
+        Texture2D texture = LoadTexture(fileName.c_str());
+        if (!IsTextureValid(texture))
+            throw std::runtime_error(std::string("Unable to load texture from ") + fileName);
+        GenTextureMipmaps(&texture);
+        SetTextureFilter(texture, filter);
+        SetTextureWrap(texture, TEXTURE_WRAP_CLAMP);
+        textureMap.emplace(id, texture);
+    }
 }
 
-void ResourceManager::LoadF(){
-    if (font) return;
-    auto deleter = [](Font *font){
-            if (font){
-                UnloadFont(*font);
-                delete font;
-            }
-        };
-    font = std::unique_ptr<Font, decltype(deleter)>(
-        new Font(LoadFontEx("Resources/LilitaOne.ttf", 64, nullptr, 0)),
-        deleter);
-    SetTextureFilter(font->texture, TEXTURE_FILTER_BILINEAR);
+void ResourceManager::UnloadT(TextureID id){
+    auto it = textureMap.find(id);
+    if (it != textureMap.end()){
+        UnloadTexture(it->second);
+        textureMap.erase(it);
+    }
 }
 
-void ResourceManager::UnloadF(){ font.reset(); }
-
-void ResourceManager::LoadAllTextures(){
+void ResourceManager::LoadGameTextures(){
     textureMap.reserve(5);
-    textureMap.emplace(TextureID::Food, LoadT("Resources/apple.png"));
-    textureMap.emplace(TextureID::BigFood, LoadT("Resources/golden apple.png"));
-    textureMap.emplace(TextureID::Poison, LoadT("Resources/poison.png"));
-    textureMap.emplace(TextureID::BackgroundTop, LoadT("Resources/background top.png"));
-    textureMap.emplace(TextureID::BackgroundBottom, LoadT("Resources/background bottom.png"));
+    LoadT(TextureID::Food, "Resources/apple.png", TEXTURE_FILTER_BILINEAR);
+    LoadT(TextureID::BigFood, "Resources/golden apple.png", TEXTURE_FILTER_BILINEAR);
+    LoadT(TextureID::Poison, "Resources/poison.png", TEXTURE_FILTER_BILINEAR);
+    LoadT(TextureID::BackgroundTop, "Resources/background top.png", TEXTURE_FILTER_BILINEAR);
+    LoadT(TextureID::BackgroundBottom, "Resources/background bottom.png", TEXTURE_FILTER_BILINEAR);
 }
 
 const Texture2D &ResourceManager::Get(TextureID id) const{
@@ -55,11 +48,4 @@ const Texture2D &ResourceManager::Get(TextureID id) const{
     if (iterator != textureMap.end())
         return iterator->second;
     throw std::runtime_error("ResourceManager: Requested texture was not found");
-}
-
-const Font &ResourceManager::GetFont() const{
-    if (!font)
-        throw std::runtime_error("ResourceManager: Requested font was not found");
-    else
-        return *font;
 }

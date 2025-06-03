@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../RayTools/raytools.hpp"
+#include <cstdint>
 #include <cstring>
 
 #define SAVE_FILE_PATH "Resources/BestScore.snk"
@@ -12,15 +13,14 @@ private:
     ScoreController(const ScoreController&) = delete;
     ScoreController &operator=(const ScoreController&) = delete;
     
-    uint currScore;
-    uint bestScore;
+    uint16_t currScore;
+    uint16_t bestScore;
 public:
     static ScoreController &GetInstance();
     ScoreController &operator+=(const uint value);
 
     void LoadBestScore();
-    void WriteBestScore() const;
+    void WriteBestScore();
     void ResetCurrentScore();
     void UpdateTitle() const;
-    void HideScore() const;
 };

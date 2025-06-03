@@ -54,6 +54,42 @@ void GenerateNewFoodPosition(Food *const food, std::shared_ptr<Snake> snake){
     } while (snake->BodyCollidesWith(food->GetPosition()));
 }
 
+void Intro(){
+    ResourceManager::GetInstance().LoadT(ResourceManager::TextureID::Logo, "Resources/logo.png", TEXTURE_FILTER_TRILINEAR);
+    const Texture2D &logo = ResourceManager::GetInstance().Get(ResourceManager::TextureID::Logo);
+    Stopwatch pause;
+
+    float alpha = 0.0f;
+    float fadeSpeed = 0.8f;
+    const float size = GetScreenWidth() * 0.5f;
+
+    while (!WindowShouldClose()){
+        if (alpha >= 1.0f){
+            alpha = 1.0f;
+            pause.Tick();
+            if (pause.GetElapsedTimeS() >= 1.0f)
+                fadeSpeed *= -1;
+        }
+        else if (alpha < 0.0f) break;
+
+        alpha += fadeSpeed * GetFrameTime();
+
+        BeginDrawing();
+            ClearBackground(BLACK);
+            DrawTexturePro(
+                logo,
+                {0.0f, 0.0f, (float)logo.width, (float)logo.height},
+                {(GetScreenWidth() - size) / 2.0f, (GetScreenHeight() - size) / 2.0f, size, size},
+                {0.0f, 0.0f},
+                0.0f,
+                Fade(BEIGE, alpha)
+            );
+        EndDrawing();
+    }
+
+    ResourceManager::GetInstance().UnloadT(ResourceManager::TextureID::Logo);
+}
+
 void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food){
     HideCursor();
     ScoreController::GetInstance().UpdateTitle();
@@ -155,4 +191,19 @@ void SnakeDead(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3
             );
         EndDrawing();
     }
+}
+
+void ShowError(const std::string &message){
+    #ifdef _WIN32
+        MessageBoxA(nullptr, message.c_str(), "Error", 0x00000010L | 0x00000000L);
+    #elif __APPLE__
+        std::string escaped = message;
+        size_t pos = 0;
+        while ((pos = escaped.find("\"", pos)) != std::string::npos)
+            escaped.replace(pos, 1, "\\\"");
+
+        const std::string cmd = "osascript -e 'display dialog \"" + escaped +
+                        "\" buttons {\"OK\"} with title \"Error\" with icon stop'";
+        system(cmd.c_str());
+    #endif
 }

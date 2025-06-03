@@ -7,9 +7,16 @@
 #include "../ScoreController/score_controller.hpp"
 #include <memory>
 
+#ifdef _WIN32
+    extern "C" __declspec(dllimport)
+    int __stdcall MessageBoxA(void* hWnd, const char* lpText, const char* lpCaption, unsigned int uType);
+#endif
+
 void GenerateIcon(const uint size);
 std::shared_ptr<Snake> CreateSnake();
 std::array<std::unique_ptr<Food>, 3> CreateFood();
 void GenerateNewFoodPosition(Food *const food, std::shared_ptr<Snake> snake);
+void Intro();
 void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food);
 void SnakeDead(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food);
+void ShowError(const std::string &message);

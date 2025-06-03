@@ -6,13 +6,20 @@ int main(){
     ResizeWindow(1.5, 1, 1);
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
     
-    // ResourceManager::GetInstance().LoadF();
-    ResourceManager::GetInstance().LoadAllTextures();
-    ColorController::GetInstance().LoadColorsFrom("Resources/Colors.json");
+    try{
+        Intro();
+        ResourceManager::GetInstance().LoadGameTextures();
+        ColorController::GetInstance().LoadColorsFrom("Resources/Colors.json");
+    }
+    catch(const std::exception &e){
+        CloseWindow();
+        ShowError(e.what());
+        return -1;
+    }
 
     std::shared_ptr<Snake> snake;
     std::array<std::unique_ptr<Food>, 3> food = CreateFood();
-    
+
     while(!WindowShouldClose()){
         snake = CreateSnake();
         GenerateIcon(48);
