@@ -4,8 +4,6 @@
 #include <cstdint>
 #include <cstring>
 
-#define SAVE_FILE_PATH "Resources/BestScore.snk"
-
 class ScoreController{
 private:
     ScoreController();

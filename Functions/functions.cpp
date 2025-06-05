@@ -3,6 +3,8 @@
 #define SNAKE_RADIUS (GetScreenWidth() * 0.03125f) //Radius of snake's body segments
 // #define SNAKE_RADIUS 48 //For debug (testing different sizes)
 
+using namespace std::chrono_literals;
+
 void GenerateIcon(const uint size){
     auto canvas = LoadRenderTexture(size, size);
     const Color &headColor = ColorController::GetInstance().GetColorFor(0);
@@ -54,40 +56,75 @@ void GenerateNewFoodPosition(Food *const food, std::shared_ptr<Snake> snake){
     } while (snake->BodyCollidesWith(food->GetPosition()));
 }
 
-void Intro(){
-    ResourceManager::GetInstance().LoadT(ResourceManager::TextureID::Logo, "Resources/logo.png", TEXTURE_FILTER_TRILINEAR);
+void Intro(std::future<void> &loaderToTrack){
+    ResourceManager::GetInstance().LoadTextureFromFile(ResourceManager::TextureID::Logo, "Resources/logo.png", TEXTURE_FILTER_TRILINEAR);
     const Texture2D &logo = ResourceManager::GetInstance().Get(ResourceManager::TextureID::Logo);
     Stopwatch pause;
+    Stopwatch fadeStopwatch;
+
+    enum State { FADE_IN, HOLD, FADE_OUT, DONE };
+    State currState = FADE_IN;
+
+    const float size = GetScreenWidth() * 0.35f;
+    constexpr float fadeDurationS = 1.0f;
+    constexpr float holdDurationS = 1.0f;
 
     float alpha = 0.0f;
-    float fadeSpeed = 0.8f;
-    const float size = GetScreenWidth() * 0.5f;
+    bool userWantsToSkip = false;
 
     while (!WindowShouldClose()){
-        if (alpha >= 1.0f){
-            alpha = 1.0f;
-            pause.Tick();
-            if (pause.GetElapsedTimeS() >= 1.0f)
-                fadeSpeed *= -1;
+        if (userWantsToSkip){
+            if (loaderToTrack.wait_for(100ms) == std::future_status::ready) break;
         }
-        else if (alpha < 0.0f) break;
+        else
+            userWantsToSkip = IsKeyPressed(KEY_ENTER);
+        
+        switch (currState){
+            case FADE_IN:
+                fadeStopwatch.Tick();
+                alpha = Easings::EaseInCubic(Clamp(fadeStopwatch.GetElapsedTimeS() / fadeDurationS, 0.0f, 1.0f));
+                if (fadeStopwatch.GetElapsedTimeS() >= fadeDurationS){
+                    alpha = 1.0f;
+                    currState = HOLD;
+                    fadeStopwatch.Reset();
+                }
+                break;
 
-        alpha += fadeSpeed * GetFrameTime();
+            case HOLD:
+                pause.Tick();
+                if (pause.GetElapsedTimeS() >= holdDurationS && loaderToTrack.wait_for(100ms) == std::future_status::ready){
+                    currState = FADE_OUT;
+                    fadeStopwatch.Reset();
+                }
+                break;
+
+            case FADE_OUT:
+                fadeStopwatch.Tick();
+                alpha = 1.0f - Easings::EaseOutCubic(Clamp(fadeStopwatch.GetElapsedTimeS() / fadeDurationS, 0.0f, 1.0f));
+                if (fadeStopwatch.GetElapsedTimeS() >= fadeDurationS){
+                    currState = DONE;
+                }
+                break;
+
+            case DONE:
+                goto exit; //Exit while loop
+        }
 
         BeginDrawing();
             ClearBackground(BLACK);
             DrawTexturePro(
                 logo,
-                {0.0f, 0.0f, (float)logo.width, (float)logo.height},
-                {(GetScreenWidth() - size) / 2.0f, (GetScreenHeight() - size) / 2.0f, size, size},
-                {0.0f, 0.0f},
+                { 0.0f, 0.0f, (float)logo.width, (float)logo.height },
+                { (GetScreenWidth() - size) / 2.0f, (GetScreenHeight() - size) / 2.0f, size, size },
+                { 0.0f, 0.0f },
                 0.0f,
-                Fade(BEIGE, alpha)
+                Fade(WHITE, alpha)
             );
         EndDrawing();
     }
 
-    ResourceManager::GetInstance().UnloadT(ResourceManager::TextureID::Logo);
+    exit:
+        ResourceManager::GetInstance().UnloadT(ResourceManager::TextureID::Logo);
 }
 
 void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food){

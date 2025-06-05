@@ -6,16 +6,27 @@ int main(){
     ResizeWindow(1.5, 1, 1);
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
     
+    std::future<void> imageLoader = std::async(std::launch::async,
+        &ResourceManager::PreloadGameImages,
+        &ResourceManager::GetInstance());
+
+    std::future<void> colorsLoader = std::async(std::launch::async,
+        &ColorController::LoadColorsFrom,
+        &ColorController::GetInstance(),
+        "Resources/Colors.json");
+
     try{
-        Intro();
-        ResourceManager::GetInstance().LoadGameTextures();
-        ColorController::GetInstance().LoadColorsFrom("Resources/Colors.json");
+        Intro(imageLoader);
+        imageLoader.get();
+        colorsLoader.get();
     }
     catch(const std::exception &e){
         CloseWindow();
         ShowError(e.what());
         return -1;
     }
+
+    ResourceManager::GetInstance().LoadTexturesFromImages(TEXTURE_FILTER_BILINEAR);
 
     std::shared_ptr<Snake> snake;
     std::array<std::unique_ptr<Food>, 3> food = CreateFood();
@@ -26,7 +37,7 @@ int main(){
         MainGame(snake, food);
         SnakeDead(snake, food);
         for (auto &food : food)
-        food->Reset();
+            food->Reset();
         ScoreController::GetInstance().ResetCurrentScore();
         ColorController::GetInstance().SwitchToNextColor();
     }

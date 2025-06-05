@@ -1,5 +1,7 @@
 #include "score_controller.hpp"
 
+#define SAVE_FILE_PATH "Resources/BestScore.snk"
+
 ScoreController::ScoreController() : currScore(0), bestScore(0){}
 
 ScoreController &ScoreController::GetInstance(){

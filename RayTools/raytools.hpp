@@ -23,6 +23,9 @@ void ResizeWindow(const float scalingIndex, const uint aspectRatioX, const uint 
 
 class Stopwatch{
 private:
+    Stopwatch(const Stopwatch&) = delete;
+    Stopwatch &operator=(const Stopwatch&) = delete;
+
     float elapsedTime;
 public:
     Stopwatch();
@@ -36,5 +39,6 @@ public:
 };
 
 namespace Easings{
-    float EaseOutBack(const float t);
+    float EaseInCubic(const float x);
+    float EaseOutCubic(const float x);
 }

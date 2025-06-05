@@ -28,8 +28,10 @@ void Stopwatch::Reset(){ elapsedTime = 0.0f; }
 float Stopwatch::GetElapsedTimeS() const{ return elapsedTime; }
 float Stopwatch::GetElapsedTimeMs() const{ return elapsedTime * 1000.0f; }
 
-float Easings::EaseOutBack(const float t){
-    const float c1 = 1.70158f;
-    const float c2 = c1 + 1.0f;
-    return 1.0f + c2 * powf(t - 1.0f, 3) + c1 * powf(t - 1.0f, 2);
+float Easings::EaseInCubic(const float x){
+    return powf(x, 3);
+}
+
+float Easings::EaseOutCubic(const float x){
+    return 1 - powf(1 - x, 3);
 }
