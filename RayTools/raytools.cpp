@@ -35,3 +35,7 @@ float Easings::EaseInCubic(const float x){
 float Easings::EaseOutCubic(const float x){
     return 1 - powf(1 - x, 3);
 }
+
+float Easings::EaseInOutCubic(const float x){
+    return x < 0.5f ? 4.0f * powf(x, 3) : 1.0f - powf(-2.0f * x + 2.0f, 3.0f) / 2.0f;
+}

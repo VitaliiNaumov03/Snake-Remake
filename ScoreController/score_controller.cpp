@@ -2,7 +2,7 @@
 
 #define SAVE_FILE_PATH "Resources/BestScore.snk"
 
-ScoreController::ScoreController() : currScore(0), bestScore(0){}
+ScoreController::ScoreController() : currScore(0), bestScore(0), bestScoreChanged(false){}
 
 ScoreController &ScoreController::GetInstance(){
     static ScoreController instance;
@@ -11,11 +11,15 @@ ScoreController &ScoreController::GetInstance(){
 
 ScoreController &ScoreController::operator+=(const uint value){
     currScore += value;
-    if (currScore > bestScore)
+    if (currScore > bestScore){
         bestScore = currScore;
+        bestScoreChanged = true;
+    }
     UpdateTitle();
     return *this;
 }
+
+bool ScoreController::BestScoreChanged() const{ return bestScoreChanged; }
 
 void ScoreController::LoadBestScore(){
     if (!FileExists(SAVE_FILE_PATH)) return;

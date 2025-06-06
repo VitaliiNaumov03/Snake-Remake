@@ -80,6 +80,8 @@ void ColorController::UpdateSnakeLength(const uint newLength){
 }
 
 void ColorController::SwitchToNextColor(){    
+    if (colorPairs.size() == 1) return;
+    
     uint next = RANDOM_VALUE;
 
     while (curr == next){

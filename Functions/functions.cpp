@@ -5,27 +5,9 @@
 
 using namespace std::chrono_literals;
 
-void GenerateIcon(const uint size){
-    auto canvas = LoadRenderTexture(size, size);
-    const Color &headColor = ColorController::GetInstance().GetColorFor(0);
-    const Vector2 position = {size / 2.0f, size / 2.7f};
-    
-    Head head(position, position.y, 3 * HALF_PI, headColor);
-    
-    BeginTextureMode(canvas);
-        ClearBackground(Color{ headColor.r, headColor.g, headColor.b, 0 });
-        DrawCircleV({position.x, position.y * 3.0f}, position.y, ColorController::GetInstance().GetColorFor(2));
-        DrawCircleV({position.x, position.y * 2.0f}, position.y, ColorController::GetInstance().GetColorFor(1));
-        head.Draw();
-    EndTextureMode();
-    SetTextureWrap(canvas.texture, TEXTURE_WRAP_CLAMP);
-    SetTextureFilter(canvas.texture, TEXTURE_FILTER_BILINEAR);
-
-    Image icon = LoadImageFromTexture(canvas.texture);
-    ImageFlipVertical(&icon);
+void SetIcon(){
+    Image icon = {ICON32_DATA, ICON32_WIDTH, ICON32_HEIGHT, 0, ICON32_FORMAT};
     SetWindowIcon(icon);
-    UnloadRenderTexture(canvas);
-    UnloadImage(icon);
 }
 
 std::shared_ptr<Snake> CreateSnake(){
@@ -114,9 +96,9 @@ void Intro(std::future<void> &loaderToTrack){
             ClearBackground(BLACK);
             DrawTexturePro(
                 logo,
-                { 0.0f, 0.0f, (float)logo.width, (float)logo.height },
-                { (GetScreenWidth() - size) / 2.0f, (GetScreenHeight() - size) / 2.0f, size, size },
-                { 0.0f, 0.0f },
+                {0.0f, 0.0f, (float)logo.width, (float)logo.height},
+                {(GetScreenWidth() - size) / 2.0f, (GetScreenHeight() - size) / 2.0f, size, size},
+                {0.0f, 0.0f},
                 0.0f,
                 Fade(WHITE, alpha)
             );
@@ -125,6 +107,51 @@ void Intro(std::future<void> &loaderToTrack){
 
     exit:
         ResourceManager::GetInstance().UnloadT(ResourceManager::TextureID::Logo);
+}
+
+void ZoomOut(std::shared_ptr<Snake> snake){
+    Camera2D camera = { 0 };
+    camera.target = (Vector2){ GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f };
+    camera.offset = camera.target;
+    camera.rotation = 0.0f;
+    camera.zoom = 0.0f;
+
+    Stopwatch zoomStopwatch;
+    const Texture2D &backgroundBottom = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundBottom);
+    const Texture2D &backgroundTop = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundTop);
+    constexpr float durationS = 2.5f;
+    constexpr float startZoom = 50.0f;
+    constexpr float endZoom = 1.0f;
+
+    while (!WindowShouldClose()){
+        zoomStopwatch.Tick();
+        camera.zoom = startZoom + (endZoom - startZoom) * Easings::EaseInOutCubic(Clamp(zoomStopwatch.GetElapsedTimeS() / durationS, 0.0f, 1.0f));
+        camera.zoom += GetMouseWheelMove() / 10.0f;
+        // if (zoomStopwatch.GetElapsedTimeS() >= 1.0f){
+        //     zoomStopwatch.Reset();
+        //     TraceLog(LOG_INFO, "Current zoom: %f", camera.zoom);
+        // }
+    
+        BeginDrawing();
+        BeginMode2D(camera);
+                DrawTexturePro(backgroundBottom,
+                    {0.0f, 0.0f, (float)backgroundBottom.width, (float)backgroundBottom.height},
+                    {0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight()},
+                    {0.0f, 0.0f},
+                    0.0f,
+                    WHITE
+                );
+                snake->Draw();
+                DrawTexturePro(backgroundTop,
+                    {0.0f, 0.0f, (float)backgroundTop.width, (float)backgroundTop.height},
+                    {0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight()},
+                    {0.0f, 0.0f},
+                    0.0f,
+                    WHITE
+                );
+        EndMode2D();
+        EndDrawing();
+    }
 }
 
 void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food){

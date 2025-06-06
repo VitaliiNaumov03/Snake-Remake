@@ -13,10 +13,12 @@ private:
     
     uint16_t currScore;
     uint16_t bestScore;
+    bool bestScoreChanged;
 public:
     static ScoreController &GetInstance();
     ScoreController &operator+=(const uint value);
 
+    bool BestScoreChanged() const;
     void LoadBestScore();
     void WriteBestScore();
     void ResetCurrentScore();

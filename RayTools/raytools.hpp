@@ -41,4 +41,5 @@ public:
 namespace Easings{
     float EaseInCubic(const float x);
     float EaseOutCubic(const float x);
+    float EaseInOutCubic(const float x);
 }
