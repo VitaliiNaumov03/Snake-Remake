@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../Compiling/icon32.h"
 #include "../Snake/snake.hpp"
 #include "../Food/food.hpp"
 #include "../ResourceManager/resource_manager.hpp"
@@ -14,12 +13,14 @@
     int __stdcall MessageBoxA(void* hWnd, const char* lpText, const char* lpCaption, unsigned int uType);
 #endif
 
-void SetIcon();
 std::shared_ptr<Snake> CreateSnake();
 std::array<std::unique_ptr<Food>, 3> CreateFood();
 void GenerateNewFoodPosition(Food *const food, std::shared_ptr<Snake> snake);
 void Intro(std::future<void> &loaderToTrack);
+void FadeIn(const Color color);
+float CalculateStartZoom();
 void ZoomOut(std::shared_ptr<Snake> snake);
 void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food);
 void SnakeDead(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food);
+void FadeOut(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food);
 void ShowError(const std::string &message);

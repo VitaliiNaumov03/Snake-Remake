@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../RayTools/raytools.hpp"
-#include <array>
 
 class Head{
 private:
@@ -11,17 +10,17 @@ private:
     uint radius;
     float angleOfMovement;
     Color color;
-    RenderTexture2D headTexture;
-    float eyesPosition;
+    Vector2 eyes[2];
     Vector2 pupils[2];
+    Vector2 nostrils[2];
+    Vector4 deadLines[4];
 
-    const std::array<Vector2, 2> CalculateEyesPosition() const;
-    const std::array<Vector2, 2> CalculateNostrilsPosition() const;
-    void MakeDeadTexture(const std::array<Vector2, 2> eyes);
+    void CalculateSymmetricOffsets(Vector2 objects[2], float offsetX, float offsetY);
+    void UpdateDeadEyes();
     void RotatePupils(const Vector2 &pupilsFollowTarget);
 public:
-    Head(const Vector2 &startPosition, const uint radius, const float startAngleOfMovement, const Color &color);
-    ~Head(){ UnloadRenderTexture(headTexture); };
+    Head(const Vector2 &startPosition, const uint radius, const float startAngleOfMovement, const Color color);
+    ~Head() = default;
     
     void Kill();
     bool IsAlive() const;

@@ -91,6 +91,4 @@ void ColorController::SwitchToNextColor(){
     curr = next;
 }
 
-const Color& ColorController::GetColorFor(const uint segmentIndex) const{
-    return colorCache[segmentIndex];
-}
+Color ColorController::GetColorFor(const uint segmentIndex) const{ return colorCache[segmentIndex]; }

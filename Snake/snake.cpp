@@ -33,13 +33,13 @@ void Snake::RotateAndMove(Vector2 &origin, const Vector2 &destination, const uin
 }
 
 void Snake::RotateAndMoveHead(Vector2 destination, uint targetDistance, const float speed){
-    angleOfMovement = atan2(destination.y - body[0].y, destination.x - body[0].x);
+    angleOfMovement = atan2f(destination.y - body[0].y, destination.x - body[0].x);
     //Calculating point on targetDistance from destination
     destination = {
         destination.x + targetDistance * cosf(angleOfMovement + PI), //Using PI to invert angle
         destination.y + targetDistance * sinf(angleOfMovement + PI)
     };
-    targetDistance = radius; //Now targetDistance is the snake's radius
+    targetDistance = radius; //Now targetDistance (from head center to destination) is the snake's radius
     
     const float currDistance = Vector2Distance(body[0], destination);
 

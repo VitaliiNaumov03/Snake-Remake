@@ -1,9 +1,10 @@
+#include "Functions/icon32.h"
 #include "Functions/functions.hpp"
 
 int main(){
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(0, 0, "Snake Remake");
-    ResizeWindow(1.5, 1, 1);
+    ResizeWindow(1.5f, 1, 1);
     SetIcon();
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
     
@@ -35,9 +36,11 @@ int main(){
 
     while(!WindowShouldClose()){
         snake = CreateSnake();
-        // ZoomOut(snake);
+        FadeIn(ColorController::GetInstance().GetColorFor(0));
+        ZoomOut(snake);
         MainGame(snake, food);
         SnakeDead(snake, food);
+        FadeOut(snake, food);
         for (auto &food : food)
             food->Reset();
         if (ScoreController::GetInstance().BestScoreChanged())

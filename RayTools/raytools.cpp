@@ -12,13 +12,24 @@ void ResizeWindow(const float scalingIndex, const uint aspectRatioX, const uint 
     newWidth += newWidth % 2;
     newHeight += newHeight % 2;
 
-    if (newWidth / aspectRatio > monitorHeight)
-        newWidth = newHeight * aspectRatio;
-    else //For 4:3 and vertical monitors
-        newHeight = newWidth / aspectRatio;
+    if (monitorWidth > monitorHeight){
+        if (newHeight / aspectRatio > monitorWidth)
+            newHeight = newWidth * aspectRatio;
+        else
+            newWidth = newHeight / aspectRatio;
+    }
+    else{
+        if (newWidth * aspectRatio > monitorHeight)
+            newWidth = newHeight / aspectRatio;
+        else
+            newHeight = newWidth * aspectRatio;
+    }
     
     SetWindowSize(newWidth, newHeight);
     SetWindowPosition((monitorWidth - newWidth) / 2, (monitorHeight - newHeight) / 2);
+    TraceLog(LOG_INFO, "RAYTOOLS: ResizeWindow");
+    TraceLog(LOG_INFO, "    > New width: %d", newWidth);
+    TraceLog(LOG_INFO, "    > New height: %d", newHeight);
 }
 
 Stopwatch::Stopwatch() : elapsedTime(0.0f){};

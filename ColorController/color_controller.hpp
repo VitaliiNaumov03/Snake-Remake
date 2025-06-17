@@ -22,5 +22,5 @@ public:
     void LoadColorsFrom(const std::string jsonFileName);
     void UpdateSnakeLength(const uint newLength);
     void SwitchToNextColor();
-    const Color& GetColorFor(const uint segmentIndex) const;
+    Color GetColorFor(const uint segmentIndex) const;
 };

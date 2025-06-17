@@ -1,14 +1,10 @@
 #include "functions.hpp"
 
+#define FADE_DURATION_S 1.0f
 #define SNAKE_RADIUS (GetScreenWidth() * 0.03125f) //Radius of snake's body segments
 // #define SNAKE_RADIUS 48 //For debug (testing different sizes)
 
 using namespace std::chrono_literals;
-
-void SetIcon(){
-    Image icon = {ICON32_DATA, ICON32_WIDTH, ICON32_HEIGHT, 0, ICON32_FORMAT};
-    SetWindowIcon(icon);
-}
 
 std::shared_ptr<Snake> CreateSnake(){
     const uint windowSize = GetScreenWidth();
@@ -48,10 +44,9 @@ void Intro(std::future<void> &loaderToTrack){
     State currState = FADE_IN;
 
     const float size = GetScreenWidth() * 0.35f;
-    constexpr float fadeDurationS = 1.0f;
     constexpr float holdDurationS = 1.0f;
 
-    float alpha = 0.0f;
+    float alpha;
     bool userWantsToSkip = false;
 
     while (!WindowShouldClose()){
@@ -64,9 +59,8 @@ void Intro(std::future<void> &loaderToTrack){
         switch (currState){
             case FADE_IN:
                 fadeStopwatch.Tick();
-                alpha = Easings::EaseInCubic(Clamp(fadeStopwatch.GetElapsedTimeS() / fadeDurationS, 0.0f, 1.0f));
-                if (fadeStopwatch.GetElapsedTimeS() >= fadeDurationS){
-                    alpha = 1.0f;
+                alpha = Easings::EaseInCubic(Clamp(fadeStopwatch.GetElapsedTimeS() / FADE_DURATION_S, 0.0f, 1.0f));
+                if (fadeStopwatch.GetElapsedTimeS() >= FADE_DURATION_S){
                     currState = HOLD;
                     fadeStopwatch.Reset();
                 }
@@ -82,8 +76,8 @@ void Intro(std::future<void> &loaderToTrack){
 
             case FADE_OUT:
                 fadeStopwatch.Tick();
-                alpha = 1.0f - Easings::EaseOutCubic(Clamp(fadeStopwatch.GetElapsedTimeS() / fadeDurationS, 0.0f, 1.0f));
-                if (fadeStopwatch.GetElapsedTimeS() >= fadeDurationS){
+                alpha = 1.0f - Easings::EaseOutCubic(Clamp(fadeStopwatch.GetElapsedTimeS() / FADE_DURATION_S, 0.0f, 1.0f));
+                if (fadeStopwatch.GetElapsedTimeS() >= FADE_DURATION_S){
                     currState = DONE;
                 }
                 break;
@@ -109,24 +103,41 @@ void Intro(std::future<void> &loaderToTrack){
         ResourceManager::GetInstance().UnloadT(ResourceManager::TextureID::Logo);
 }
 
+void FadeIn(const Color color){
+    Stopwatch fadeStopwatch;
+    float alpha;
+
+    while (!WindowShouldClose()){
+        fadeStopwatch.Tick();
+        alpha = Easings::EaseInCubic(Clamp(fadeStopwatch.GetElapsedTimeS() / FADE_DURATION_S, 0.0f, 1.0f));
+        if (fadeStopwatch.GetElapsedTimeS() >= FADE_DURATION_S) return;
+    
+        BeginDrawing();
+            DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(color, alpha));
+        EndDrawing();
+    }
+}
+
+inline float CalculateStartZoom(){ return GetScreenHeight() / SNAKE_RADIUS * 1.5f; }
+
 void ZoomOut(std::shared_ptr<Snake> snake){
+    Stopwatch zoomStopwatch;
+    const Texture2D &backgroundBottom = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundBottom);
+    const Texture2D &backgroundTop = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundTop);
+    constexpr float durationS = 1.5f;
+    constexpr float endZoom = 1.0f;
+
     Camera2D camera = { 0 };
     camera.target = (Vector2){ GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f };
     camera.offset = camera.target;
     camera.rotation = 0.0f;
-    camera.zoom = 0.0f;
-
-    Stopwatch zoomStopwatch;
-    const Texture2D &backgroundBottom = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundBottom);
-    const Texture2D &backgroundTop = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundTop);
-    constexpr float durationS = 2.5f;
-    constexpr float startZoom = 50.0f;
-    constexpr float endZoom = 1.0f;
+    const float startZoom = camera.zoom = CalculateStartZoom();
 
     while (!WindowShouldClose()){
         zoomStopwatch.Tick();
         camera.zoom = startZoom + (endZoom - startZoom) * Easings::EaseInOutCubic(Clamp(zoomStopwatch.GetElapsedTimeS() / durationS, 0.0f, 1.0f));
-        camera.zoom += GetMouseWheelMove() / 10.0f;
+        // float scale = 0.1f*GetMouseWheelMove();
+        // camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0.125f, 64.0f);
         // if (zoomStopwatch.GetElapsedTimeS() >= 1.0f){
         //     zoomStopwatch.Reset();
         //     TraceLog(LOG_INFO, "Current zoom: %f", camera.zoom);
@@ -151,6 +162,8 @@ void ZoomOut(std::shared_ptr<Snake> snake){
                 );
         EndMode2D();
         EndDrawing();
+
+        if (camera.zoom == 1.0f) return;
     }
 }
 
@@ -178,7 +191,7 @@ void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3>
                 }
                 
                 if (snake->Bites(food[i]->GetPosition(), food[i]->GetRadius())){
-                    if (i == 2){
+                    if (i == 2){ //Poison
                         food[2]->Disappear();
                         snake->Kill(Snake::CauseOfDeath::AtePoison);
                         return;
@@ -205,7 +218,7 @@ void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3>
                 WHITE
             );
             for (uint i = 0; i < food.size(); ++i)
-            food[i]->Draw();
+                food[i]->Draw();
             snake->Draw();
             DrawTexturePro(backgroundTop,
                 {0.0f, 0.0f, (float)backgroundTop.width, (float)backgroundTop.height},
@@ -227,8 +240,8 @@ void SnakeDead(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3
 
     while (!WindowShouldClose()){
         if (!snake->UpdateDead()){
-            pause.Tick();
-            if (pause.GetElapsedTimeS() >= 1.0f)
+            // pause.Tick();
+            // if (pause.GetElapsedTimeS() >= 1.0f)
                 return;
         }
 
@@ -253,6 +266,48 @@ void SnakeDead(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3
                 0.0f,
                 WHITE
             );
+        EndDrawing();
+    }
+}
+
+void FadeOut(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food){
+    const Texture2D &backgroundTop = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundTop);
+    const Texture2D &backgroundBottom = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundBottom);
+    Stopwatch fadeStopwatch;
+    Stopwatch pause;
+    float alpha;
+
+    while (!WindowShouldClose()){
+        fadeStopwatch.Tick();
+        alpha = Easings::EaseInCubic(Clamp(fadeStopwatch.GetElapsedTimeS() / FADE_DURATION_S, 0.0f, 1.0f));
+        if (fadeStopwatch.GetElapsedTimeS() >= FADE_DURATION_S){
+            pause.Tick();
+            if (pause.GetElapsedTimeMs() >= 300.0f)
+                return;
+        }
+    
+        for (auto &food : food)
+            food->Update();
+
+        BeginDrawing();
+            DrawTexturePro(backgroundBottom,
+                {0.0f, 0.0f, (float)backgroundBottom.width, (float)backgroundBottom.height},
+                {0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight()},
+                {0.0f, 0.0f},
+                0.0f,
+                WHITE
+            );
+            for (uint i = 0; i < food.size(); ++i)
+                food[i]->Draw();
+            snake->Draw();
+            DrawTexturePro(backgroundTop,
+                {0.0f, 0.0f, (float)backgroundTop.width, (float)backgroundTop.height},
+                {0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight()},
+                {0.0f, 0.0f},
+                0.0f,
+                WHITE
+            );
+            DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, alpha));
         EndDrawing();
     }
 }

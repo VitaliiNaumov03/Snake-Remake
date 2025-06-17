@@ -1,157 +1,140 @@
 #include "head.hpp"
 
-#define OFFSET radius / 2.0f
-#define EYES_BACK_RADIUS roundf(radius / 1.5f)
-#define EYES_RADIUS roundf(EYES_BACK_RADIUS / 2.0f)
-#define PUPILS_RADIUS EYES_RADIUS / 1.6f
+float eyesOffsetX;
+float eyesOffsetY;
+float eyesBackRadius;
+float eyesRadius;
+float pupilsRadius;
+float nostrilsRadius;
 
-Head::Head(const Vector2 &startPosition, const uint radius, const float startAngleOfMovement, const Color &color) :
+Head::Head(const Vector2 &startPosition, const uint radius, const float startAngleOfMovement, const Color color) :
     isAlive(true),
     position(startPosition),
     radius(radius),
     angleOfMovement(startAngleOfMovement),
-    color(color),
-    eyesPosition(roundf(radius * 2.0f / 3.0f)){
+    color(color){
     
-    //CREATING ALIVE HEAD TEXTURE
-    const Vector2 textureSize = {
-        (float)radius * 2 + EYES_BACK_RADIUS - OFFSET,
-        (float)(radius + EYES_BACK_RADIUS - (radius - eyesPosition)) * 2
-    };
+    //Eyes offset from center of head
+    eyesOffsetX = roundf(radius * 2.0f / 3.0f);
+    eyesOffsetY = radius / 2.0f;
 
-    headTexture = LoadRenderTexture((int)textureSize.x, (int)textureSize.y);
-    
+    //Radiuses
+    eyesBackRadius = roundf(radius / 1.5f);
+    eyesRadius = roundf(eyesBackRadius / 2.0f);
+    pupilsRadius = eyesRadius / 1.6f;
+    nostrilsRadius = roundf(radius * 0.0625f);
+
     //EYES
-    const auto eyes = CalculateEyesPosition();
-    RotatePupils({ 0.0f, 0.0f }); //Initializes base position
+    CalculateSymmetricOffsets(eyes, eyesOffsetX, eyesOffsetY);
+    //Initializing base positions before rotation
+    pupils[0] = eyes[0];
+    pupils[1] = eyes[1];
     RotatePupils({ //Rotates forward
-        position.x + textureSize.x * cosf(angleOfMovement),
-        position.y + textureSize.y * sinf(angleOfMovement)
+        position.x + radius * 2.0f * cosf(angleOfMovement),
+        position.y + radius * 2.0f * sinf(angleOfMovement)
     });
     
     //NOSTRILS
-    const uint nostrilsRadius = roundf(radius * 0.083f);
-    const auto nostrils = CalculateNostrilsPosition();
-
-    BeginTextureMode(headTexture);
-        ClearBackground(Color{ color.r, color.g, color.b, 0 });
-        DrawCircle(textureSize.x - radius, textureSize.y / 2.0f, radius, color); //Head circle
-        for (uint i = 0; i < 2; ++i){
-            DrawCircle(eyes[i].x, eyes[i].y, EYES_BACK_RADIUS, color);
-            DrawCircle(eyes[i].x, eyes[i].y, EYES_RADIUS, WHITE);
-            DrawCircle(nostrils[i].x, nostrils[i].y, nostrilsRadius, DARKGRAY);
-        }
-    EndTextureMode();
-    SetTextureWrap(headTexture.texture, TEXTURE_WRAP_CLAMP);
-    SetTextureFilter(headTexture.texture, TEXTURE_FILTER_BILINEAR);
+    CalculateSymmetricOffsets(nostrils, eyesOffsetY, -eyesOffsetY);
 }
 
-const std::array<Vector2, 2> Head::CalculateEyesPosition() const{
-    return {{
-        { //Left eye
-            headTexture.texture.width - radius - OFFSET,
-            headTexture.texture.height / 2.0f - eyesPosition
-        },
-        { //Right eye
-            headTexture.texture.width - radius - OFFSET,
-            headTexture.texture.height / 2.0f + eyesPosition
-        }
-    }};
+void Head::CalculateSymmetricOffsets(Vector2 objects[2], float offsetX, float offsetY){
+    const float cosAngle = cosf(angleOfMovement);
+    const float sinAngle = sinf(angleOfMovement);
+    
+    //Forward displacement vector in the direction of movement
+    Vector2 forwardVec = {offsetY * cosAngle, offsetY * sinAngle};
+    
+    //Side displacement vector (perpendicular to the direction of movement)
+    Vector2 sideVec = {offsetX * sinAngle, -offsetX * cosAngle};
+    
+    objects[0] = position - forwardVec + sideVec;
+    objects[1] = position - forwardVec - sideVec;
 }
 
-const std::array<Vector2, 2> Head::CalculateNostrilsPosition() const{
-    return {{
-        { //Left nostril
-            headTexture.texture.width - OFFSET,
-            headTexture.texture.height / 2.0f - OFFSET
-        },
-        { //Right nostril
-            headTexture.texture.width - OFFSET,
-            headTexture.texture.height / 2.0f + OFFSET
-        }
-    }};
-}
+void Head::UpdateDeadEyes(){
+    float angle45 = angleOfMovement + (PI / 4.0f); //45°
+    float angle135 = angleOfMovement + (3 * PI / 4.0f); //135°
+    float angle225 = angleOfMovement + (5 * PI / 4.0f); //225°
+    float angle315 = angleOfMovement + (7 * PI / 4.0f); //315°
 
-void Head::MakeDeadTexture(const std::array<Vector2, 2> eyes){
-    const uint lineThickness = EYES_RADIUS / 2.0f;
-    Vector4 line;
+    //Normalizing angles to the range [0, 2π)
+    angle45 = fmodf(angle45 + 2 * PI, 2 * PI);
+    angle135 = fmodf(angle135 + 2 * PI, 2 * PI);
+    angle225 = fmodf(angle225 + 2 * PI, 2 * PI);
+    angle315 = fmodf(angle315 + 2 * PI, 2 * PI);
 
-    BeginTextureMode(headTexture);
-        for (uint i = 0; i < 2; ++i){
-            DrawCircle(eyes[i].x, eyes[i].y, EYES_RADIUS, color);
+    uint l = 0;
+    for (uint e = 0; e < 2; ++e){
+        deadLines[l] = {
+            eyes[e].x + eyesRadius * cosf(angle45),
+            eyes[e].y + eyesRadius * sinf(angle45),
+            eyes[e].x + eyesRadius * cosf(angle225),
+            eyes[e].y + eyesRadius * sinf(angle225)
+        };
+        ++l;
 
-            line = {
-                eyes[i].x + EYES_RADIUS * cosf(3.92699f),
-                eyes[i].y + EYES_RADIUS * sinf(3.92699f),
-                eyes[i].x + EYES_RADIUS * cosf(0.785398f),
-                eyes[i].y + EYES_RADIUS * sinf(0.785398f)
-            };
-            DrawLineEx({line.x, line.y}, {line.z, line.w}, lineThickness, DARKGRAY);
-            
-            line = {
-                eyes[i].x + EYES_RADIUS * cosf(2.35619f),
-                eyes[i].y + EYES_RADIUS * sinf(2.35619f),
-                eyes[i].x + EYES_RADIUS * cosf(5.49779f),
-                eyes[i].y + EYES_RADIUS * sinf(5.49779f)
-            };
-            DrawLineEx({line.x, line.y}, {line.z, line.w}, lineThickness, DARKGRAY);
-        }
-    EndTextureMode();
+        deadLines[l] = {
+            eyes[e].x + eyesRadius * cosf(angle135),
+            eyes[e].y + eyesRadius * sinf(angle135),
+            eyes[e].x + eyesRadius * cosf(angle315),
+            eyes[e].y + eyesRadius * sinf(angle315)
+        };
+        ++l;
+    }
 }
 
 void Head::RotatePupils(const Vector2 &pupilsFollowTarget){
-    const Vector2 offset = {
-        radius / 2.0f * cosf(angleOfMovement),
-        radius / 2.0f * sinf(angleOfMovement)
-    };
-
-    //Left pupil
-    const float angleL = atan2(pupilsFollowTarget.y - pupils[0].y, pupilsFollowTarget.x - pupils[0].x);
-    pupils[0] = {
-        roundf(position.x - offset.x + eyesPosition * cosf(angleOfMovement - HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * cosf(angleL)),
-        roundf(position.y - offset.y + eyesPosition * sinf(angleOfMovement - HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * sinf(angleL))
-    };
-
-    //Right pupil
-    const float angleR = atan2(pupilsFollowTarget.y - pupils[1].y, pupilsFollowTarget.x - pupils[1].x);
-    pupils[1] = {
-        roundf(position.x - offset.x + eyesPosition * cosf(angleOfMovement + HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * cosf(angleR)),
-        roundf(position.y - offset.y + eyesPosition * sinf(angleOfMovement + HALF_PI) + (EYES_RADIUS - PUPILS_RADIUS) * sinf(angleR))
-    };
+    float angle;
+    for (uint i = 0; i < 2; ++i){
+        angle = atan2f(pupilsFollowTarget.y - pupils[i].y, pupilsFollowTarget.x - pupils[i].x);
+        pupils[i] = {
+            eyes[i].x + (eyesRadius - pupilsRadius) * cosf(angle),
+            eyes[i].y + (eyesRadius - pupilsRadius) * sinf(angle)
+        };
+    }
 }
 
-void Head::Kill(){
-    MakeDeadTexture(CalculateEyesPosition());
-    isAlive = false;
-}
-
+void Head::Kill(){ isAlive = false; }
 bool Head::IsAlive() const { return isAlive; }
-
 Vector2 Head::GetCollisionPoint() const{ return collisionPoint; }
 
-void Head::Update(const Vector2 &newPosition, const float newAngle, const Vector2 &pupilsFollowTarget){
+void Head::Update(const Vector2 &newPosition, const float newAngleOfMovement, const Vector2 &pupilsFollowTarget){
     position = newPosition;
-    angleOfMovement = newAngle;
-    collisionPoint = {
-        position.x + OFFSET * cosf(angleOfMovement),
-        position.y + OFFSET * sinf(angleOfMovement)
+    angleOfMovement = newAngleOfMovement;
+    if (isAlive) collisionPoint = {
+        position.x + eyesOffsetY * cosf(angleOfMovement),
+        position.y + eyesOffsetY * sinf(angleOfMovement)
     };
-    RotatePupils(pupilsFollowTarget);
+    CalculateSymmetricOffsets(eyes, eyesOffsetX, eyesOffsetY); //New position for eyes
+    CalculateSymmetricOffsets(nostrils, eyesOffsetY, -eyesOffsetY); //New position for nostrils
+    if (isAlive) RotatePupils(pupilsFollowTarget);
+    else UpdateDeadEyes();
 }
 
 void Head::Draw() const{
     //Head
-    DrawTexturePro(headTexture.texture,
-        {0.0f, 0.0f, (float)headTexture.texture.width, (float)-headTexture.texture.height},
-        {position.x, position.y, (float)headTexture.texture.width, (float)headTexture.texture.height},
-        {(float)headTexture.texture.width - radius, headTexture.texture.height / 2.0f},
-        angleOfMovement * RAD_TO_DEG,
-        WHITE
-    );
+    DrawCircleV(position, radius, color);
 
-    //Pupils
+    //Eyes
+    for (uint i = 0; i < 2; ++i){
+        DrawCircleV(eyes[i], eyesBackRadius, color);
+    }
+        
     if (isAlive){
-        for (uint i = 0; i < 2; ++i)
-            DrawCircle(pupils[i].x, pupils[i].y, PUPILS_RADIUS, BLACK);
+        for (uint i = 0; i < 2; ++i){
+            DrawCircleV(eyes[i], eyesRadius, WHITE);
+            DrawCircleV(pupils[i], pupilsRadius, BLACK);
+        }
+    }
+    else{
+        for (uint i = 0; i < 4; ++i){
+            DrawLineEx({deadLines[i].x, deadLines[i].y}, {deadLines[i].z, deadLines[i].w}, eyesRadius / 2.0f, DARKGRAY);
+        }
+    }
+
+    //Nostrils
+    for (uint i = 0; i < 2; ++i){
+        DrawCircleV(nostrils[i], nostrilsRadius, DARKGRAY);
     }
 }
