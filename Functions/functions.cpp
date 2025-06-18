@@ -34,7 +34,14 @@ void GenerateNewFoodPosition(Food *const food, std::shared_ptr<Snake> snake){
     } while (snake->BodyCollidesWith(food->GetPosition()));
 }
 
-void Intro(std::future<void> &loaderToTrack){
+bool AllLoadersFinished(std::vector<std::future<void>*> &loadersToTrack){
+    for (auto loader : loadersToTrack){
+        if (loader->wait_for(0ms) != std::future_status::ready) return false;
+    }
+    return true;
+}
+
+void Intro(std::vector<std::future<void>*> loadersToTrack){
     ResourceManager::GetInstance().LoadTextureFromFile(ResourceManager::TextureID::Logo, "Resources/logo.png", TEXTURE_FILTER_TRILINEAR);
     const Texture2D &logo = ResourceManager::GetInstance().Get(ResourceManager::TextureID::Logo);
     Stopwatch pause;
@@ -51,7 +58,7 @@ void Intro(std::future<void> &loaderToTrack){
 
     while (!WindowShouldClose()){
         if (userWantsToSkip){
-            if (loaderToTrack.wait_for(100ms) == std::future_status::ready) break;
+            if (AllLoadersFinished(loadersToTrack)) return;
         }
         else
             userWantsToSkip = IsKeyPressed(KEY_ENTER);
@@ -68,7 +75,7 @@ void Intro(std::future<void> &loaderToTrack){
 
             case HOLD:
                 pause.Tick();
-                if (pause.GetElapsedTimeS() >= holdDurationS && loaderToTrack.wait_for(100ms) == std::future_status::ready){
+                if (pause.GetElapsedTimeS() >= holdDurationS && AllLoadersFinished(loadersToTrack)){
                     currState = FADE_OUT;
                     fadeStopwatch.Reset();
                 }
@@ -124,7 +131,7 @@ void ZoomOut(std::shared_ptr<Snake> snake){
     Stopwatch zoomStopwatch;
     const Texture2D &backgroundBottom = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundBottom);
     const Texture2D &backgroundTop = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundTop);
-    constexpr float durationS = 1.5f;
+    constexpr float durationS = 1.0f;
     constexpr float endZoom = 1.0f;
 
     Camera2D camera = { 0 };

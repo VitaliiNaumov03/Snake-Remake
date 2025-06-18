@@ -18,7 +18,7 @@ int main(){
         "Resources/Colors.json");
 
     try{
-        Intro(imageLoader);
+        Intro({&imageLoader, &colorsLoader});
         imageLoader.get();
         colorsLoader.get();
     }

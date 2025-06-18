@@ -16,11 +16,14 @@
 std::shared_ptr<Snake> CreateSnake();
 std::array<std::unique_ptr<Food>, 3> CreateFood();
 void GenerateNewFoodPosition(Food *const food, std::shared_ptr<Snake> snake);
-void Intro(std::future<void> &loaderToTrack);
-void FadeIn(const Color color);
+bool AllLoadersFinished(std::vector<std::future<void>*> &loadersToTrack);
 float CalculateStartZoom();
+
+void Intro(std::vector<std::future<void>*> loadersToTrack);
+void FadeIn(const Color color);
 void ZoomOut(std::shared_ptr<Snake> snake);
 void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food);
 void SnakeDead(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food);
 void FadeOut(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food);
+
 void ShowError(const std::string &message);

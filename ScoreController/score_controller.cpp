@@ -37,7 +37,10 @@ void ScoreController::WriteBestScore(){
     SaveFileData(SAVE_FILE_PATH, &bestScore, sizeof(bestScore));
 }
 
-void ScoreController::ResetCurrentScore(){ currScore = 0; }
+void ScoreController::ResetCurrentScore(){ 
+    currScore = 0;
+    UpdateTitle();
+}
 
 void ScoreController::UpdateTitle() const{
     SetWindowTitle(TextFormat("🍎: %d 🏆: %d", currScore, bestScore));

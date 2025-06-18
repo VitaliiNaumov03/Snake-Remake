@@ -11,12 +11,12 @@ typedef unsigned int uint;
 /**
  * @brief New window size = (monitorWidth / scalingIndex) or (monitorHeight / scalingIndex);
  * 
- * Monitor parameter depends on it's aspect ratio, so that window fits in;
+ * Monitor parameter depends on it's aspect ratio and is chosen automatically, so that window fits in;
  * 
  * aspectRatioX and aspectRatioY can either take "1920, 1080" or "16, 9" format.
  * 
- * @param aspectRatioX width of new window
- * @param aspectRatioY height of new window
+ * @param aspectRatioX horizontal aspect ratio of a new window, for example, 16
+ * @param aspectRatioY vertical aspect ratio of a new window, for example, 9
  * 
  */
 void ResizeWindow(const float scalingIndex, const uint aspectRatioX, const uint aspectRatioY);
