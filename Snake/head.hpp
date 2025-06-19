@@ -17,7 +17,7 @@ private:
 
     void CalculateSymmetricOffsets(Vector2 objects[2], float offsetX, float offsetY);
     void UpdateDeadEyes();
-    void RotatePupils(const Vector2 &pupilsFollowTarget);
+    void RotatePupils(Vector2 pupilsFollowTarget);
 public:
     Head(const Vector2 &startPosition, const uint radius, const float startAngleOfMovement, const Color color);
     ~Head() = default;

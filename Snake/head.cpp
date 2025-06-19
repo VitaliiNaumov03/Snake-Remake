@@ -84,7 +84,14 @@ void Head::UpdateDeadEyes(){
     }
 }
 
-void Head::RotatePupils(const Vector2 &pupilsFollowTarget){
+void Head::RotatePupils(Vector2 pupilsFollowTarget){
+    //Prevents pupils from rotating inside
+    if (Vector2Distance(pupilsFollowTarget, position) <= radius){
+        pupilsFollowTarget = {
+            position.x + radius * cosf(angleOfMovement),
+            position.y + radius * sinf(angleOfMovement)
+        };
+    }
     float angle;
     for (uint i = 0; i < 2; ++i){
         angle = atan2f(pupilsFollowTarget.y - pupils[i].y, pupilsFollowTarget.x - pupils[i].x);

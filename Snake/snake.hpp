@@ -5,6 +5,7 @@
 #include "tongue.hpp"
 #include "../ColorController/color_controller.hpp"
 #include <vector>
+#include <optional>
 
 class Snake{
 public:
@@ -40,7 +41,7 @@ private:
 
     //Body parts
     Head head;
-    Tongue tongue;
+    static std::optional<Tongue> tongue;
     std::vector<Vector2> body;
 
     void RotateAndMove(Vector2 &origin, const Vector2 &destination, const uint targetDistance);

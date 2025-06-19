@@ -32,7 +32,7 @@ int main(){
     ScoreController::GetInstance().LoadBestScore();
 
     std::shared_ptr<Snake> snake;
-    std::array<std::unique_ptr<Food>, 3> food = CreateFood();
+    auto food = CreateFood();
 
     while(!WindowShouldClose()){
         snake = CreateSnake();
@@ -41,12 +41,16 @@ int main(){
         MainGame(snake, food);
         SnakeDead(snake, food);
         FadeOut(snake, food);
-        for (auto &food : food)
+        for (auto &food : food){
             food->Reset();
-        if (ScoreController::GetInstance().BestScoreChanged())
+        }
+        if (ScoreController::GetInstance().BestScoreChanged()){
             ScoreController::GetInstance().WriteBestScore();
-        ScoreController::GetInstance().ResetCurrentScore();
-        ColorController::GetInstance().SwitchToNextColor();
+        }
+        if (!WindowShouldClose()){
+            ScoreController::GetInstance().ResetCurrentScore();
+            ColorController::GetInstance().SwitchToNextColor();
+        }
     }
     CloseWindow();
     return 0;

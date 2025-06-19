@@ -17,6 +17,7 @@ public:
     Tongue(const Vector2 &headPosition, const uint length, const float startAngleOfMovement, const uint speed);
     ~Tongue(){ UnloadRenderTexture(tongueTexture); };
 
+    void Reset(const Vector2 &headPosition, const float startAngleOfMovement);
     void Update(const Vector2 &newHeadPosition, const float newAngle);
     void UpdateDead(const Vector2 &newHeadPosition, const float newAngle);
     void Draw() const;

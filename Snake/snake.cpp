@@ -5,6 +5,8 @@
 #define SHAKE_DURATION_MS 150.0f
 #define SHAKE_INTENSITY roundf(radius / 10.0f)
 
+std::optional<Tongue> Snake::tongue = std::nullopt;
+
 Snake::Snake(Vector2 startPosition, uint startLength, const uint radius, const uint segmentsGap, const uint speed) :
     radius(radius),
     segmentsGap(segmentsGap),
@@ -13,8 +15,12 @@ Snake::Snake(Vector2 startPosition, uint startLength, const uint radius, const u
     currShakeIntensity(0),
     shakeInterval(1.0f / SHAKES_PER_SECOND), //So that the first shake starts without pause
     colContr(&ColorController::GetInstance()),
-    head(startPosition, radius, angleOfMovement, colContr->GetColorFor(0)),
-    tongue(startPosition, radius, angleOfMovement, speed * 0.4f){
+    head(startPosition, radius, angleOfMovement, colContr->GetColorFor(0)){
+
+    if (!tongue.has_value())
+        tongue.emplace(startPosition, radius, angleOfMovement, speed * 0.4f);
+    else
+        tongue->Reset(startPosition, angleOfMovement);
 
     body.reserve(startLength + 10);
     body.emplace_back(startPosition);
@@ -107,7 +113,7 @@ void Snake::Update(const Vector2 &destination, const uint targetDistance, const 
     
     //Head
     head.Update(body[0], angleOfMovement, pupilsFollowTarget);
-    tongue.Update(body[0], angleOfMovement);
+    tongue->Update(body[0], angleOfMovement);
 }
 
 //Returns false when animation is finished
@@ -121,7 +127,7 @@ bool Snake::UpdateDead(){
                 RotateAndMove(body[i], body[i - 1], segmentsGap);
             
             head.Update(body[0], angleOfMovement, {0.0f, 0.0f});
-            tongue.UpdateDead(body[0], angleOfMovement);
+            tongue->UpdateDead(body[0], angleOfMovement);
         
             return true;
         }
@@ -132,7 +138,7 @@ bool Snake::UpdateDead(){
 
                 //Reset positions back to normal
                 head.Update(body[0], angleOfMovement, {0.0f, 0.0f});
-                tongue.UpdateDead(body[0], angleOfMovement);
+                tongue->UpdateDead(body[0], angleOfMovement);
 
                 return false;
             }
@@ -141,7 +147,7 @@ bool Snake::UpdateDead(){
                 shakeInterval.Tick();
                 if (shakeInterval.GetElapsedTimeS() >= 1.0f / SHAKES_PER_SECOND){
                     head.Update({body[0].x + currShakeIntensity, body[0].y}, angleOfMovement, {0.0f, 0.0f});
-                    tongue.UpdateDead({body[0].x + currShakeIntensity, body[0].y}, angleOfMovement);
+                    tongue->UpdateDead({body[0].x + currShakeIntensity, body[0].y}, angleOfMovement);
                     currShakeIntensity *= -1;
                     shakeInterval.Reset();
                 }
@@ -159,6 +165,6 @@ void Snake::Draw() const{
         DrawCircle(body[i].x + currShakeIntensity, body[i].y, radius, colContr->GetColorFor(i));
     
     //Head
-    tongue.Draw();
+    tongue->Draw();
     head.Draw();
 }

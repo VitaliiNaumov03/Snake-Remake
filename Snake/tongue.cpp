@@ -64,6 +64,14 @@ void Tongue::UpdateActive(const Vector2 &newHeadPosition, const float newAngle){
     }
 }
 
+void Tongue::Reset(const Vector2 &headPosition, const float startAngleOfMovement){
+    active = false;
+    distanceFromHead = 0;
+    this->position = headPosition;
+    this->angleOfMovement = startAngleOfMovement;
+    stopwatch.Reset();
+}
+
 void Tongue::Update(const Vector2 &newHeadPosition, const float newAngle){
     if (active){
         UpdateActive(newHeadPosition, newAngle);
