@@ -17,10 +17,15 @@ private:
     uint curr;
     std::vector<std::array<Color, 2>> colorPairs;
     std::vector<Color> colorCache;
+    Color cursorColor;
+
+    bool ColorIsValid(const nlohmann::json &arr) const;
+    void LoadValidColorPairsFrom(const nlohmann::json &arr);
 public:
     static ColorController &GetInstance();
     void LoadColorsFrom(const std::string jsonFileName);
     void UpdateSnakeLength(const uint newLength);
     void SwitchToNextColor();
+    Color GetCursorColor() const;
     Color GetColorFor(const uint segmentIndex) const;
 };

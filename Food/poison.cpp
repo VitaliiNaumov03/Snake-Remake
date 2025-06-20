@@ -23,7 +23,7 @@ void Poison::AppearingAnimation(){
 
 void Poison::DisappearingAnimation(){
     if (currSize > 0.0f){
-        currSize -= APPEARANCE_SPEED * GetFrameTime();
+        currSize -= DISAPPEARANCE_SPEED * GetFrameTime();
         Rotate();
     }
     else{

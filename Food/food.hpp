@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #define APPEARANCE_SPEED (size * 5)
+#define DISAPPEARANCE_SPEED (size * 6.0f)
 #define ROTATION_SPEED 300
 #define IDLE_TIME_S 3.0f
 #define IDLE_AMPLITUDE 0.15f //Amplitude of oscillations in "Idle" state (15% from size)

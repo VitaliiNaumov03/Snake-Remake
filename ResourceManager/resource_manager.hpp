@@ -21,7 +21,7 @@ private:
     ResourceManager(const ResourceManager&) = delete;
     ResourceManager &operator=(const ResourceManager&) = delete;
 
-    Image LoadI(const std::string &fileName);
+    void LoadI(TextureID id, const std::string &fileName);
     std::unordered_map<TextureID, Texture2D> textureMap;
     std::unordered_map<TextureID, Image> imageMap;
     mutable std::mutex mtx;

@@ -42,7 +42,7 @@ bool AllLoadersFinished(std::vector<std::future<void>*> &loadersToTrack){
 }
 
 void Intro(std::vector<std::future<void>*> loadersToTrack){
-    ResourceManager::GetInstance().LoadTextureFromFile(ResourceManager::TextureID::Logo, "Resources/logo.png", TEXTURE_FILTER_TRILINEAR);
+    ResourceManager::GetInstance().LoadTextureFromFile(ResourceManager::TextureID::Logo, "Resources/Images/logo.png", TEXTURE_FILTER_TRILINEAR);
     const Texture2D &logo = ResourceManager::GetInstance().Get(ResourceManager::TextureID::Logo);
     Stopwatch pause;
     Stopwatch fadeStopwatch;
@@ -61,7 +61,7 @@ void Intro(std::vector<std::future<void>*> loadersToTrack){
             if (AllLoadersFinished(loadersToTrack)) return;
         }
         else
-            userWantsToSkip = IsKeyPressed(KEY_ENTER);
+            userWantsToSkip = GetKeyPressed() || IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || IsMouseButtonPressed(MOUSE_BUTTON_RIGHT);
         
         switch (currState){
             case FADE_IN:
@@ -118,8 +118,9 @@ void FadeIn(const Color color){
         fadeStopwatch.Tick();
         alpha = Easings::EaseInCubic(Clamp(fadeStopwatch.GetElapsedTimeS() / FADE_DURATION_S, 0.0f, 1.0f));
         if (fadeStopwatch.GetElapsedTimeS() >= FADE_DURATION_S) return;
-    
+        
         BeginDrawing();
+            ClearBackground(BLACK);
             DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(color, alpha));
         EndDrawing();
     }
@@ -176,9 +177,11 @@ void ZoomOut(std::shared_ptr<Snake> snake){
 
 void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3> &food){
     HideCursor();
-    ScoreController::GetInstance().UpdateTitle();
     Vector2 mousePosition;
     const uint cursorRadius = snake->GetRadius() / 2.0f;
+    ScoreController &score = ScoreController::GetInstance();
+    score.UpdateTitle();
+    ColorController &colorController = ColorController::GetInstance();
     const Texture2D &backgroundTop = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundTop);
     const Texture2D &backgroundBottom = ResourceManager::GetInstance().Get(ResourceManager::TextureID::BackgroundBottom);
 
@@ -205,8 +208,8 @@ void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3>
                     }
                     const uint points = food[i]->Eat();
                     snake->Grow(points);
-                    ScoreController::GetInstance() += points;
-                    ColorController::GetInstance().UpdateSnakeLength(snake->GetLength());
+                    score += points;
+                    colorController.UpdateSnakeLength(snake->GetLength());
                 }
             }
         }
@@ -234,7 +237,7 @@ void MainGame(std::shared_ptr<Snake> snake, std::array<std::unique_ptr<Food>, 3>
                 0.0f,
                 WHITE
             );
-            DrawCircleV(mousePosition, cursorRadius, MAROON); //Cursor
+            DrawCircleV(mousePosition, cursorRadius, colorController.GetCursorColor()); //Cursor
         EndDrawing();
     }
 }

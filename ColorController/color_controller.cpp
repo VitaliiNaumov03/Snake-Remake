@@ -7,59 +7,84 @@ ColorController &ColorController::GetInstance(){
     return instance;
 }
 
+//Checks each value in color (integers from 0 to 255)
+bool ColorController::ColorIsValid(const nlohmann::json &color) const{
+    if (color.size() != 3 || !color.is_array()) return false;
+    for (const auto &value : color){
+        if (!value.is_number_integer() || value < 0 || value > 255)
+            return false;
+    }
+    return true;
+}
+
+void ColorController::LoadValidColorPairsFrom(const nlohmann::json &array){
+    if (array.size() == 0) return;
+
+    //Checking general structure of color pair [[r,g,b], [r,g,b]]
+    for (const auto &colorPair : array){
+        if (!colorPair.is_array() || colorPair.size() != 2 ||
+            !ColorIsValid(colorPair[0]) || !ColorIsValid(colorPair[1]))
+            continue; //Skip invalid color pair
+        
+        //If everything is fine, save this color pair
+        colorPairs.emplace_back(std::array<Color, 2>{{
+            {colorPair[0][0], colorPair[0][1], colorPair[0][2], 255},
+            {colorPair[1][0], colorPair[1][1], colorPair[1][2], 255}
+        }});
+    }
+}
+
 void ColorController::LoadColorsFrom(const std::string jsonFileName){
-    if (!FileExists(jsonFileName.c_str()))
-        throw std::runtime_error("File not found: " + jsonFileName);
+    if (!FileExists(jsonFileName.c_str())){
+        throw std::runtime_error("File not found: \"" + jsonFileName + "\"");
+    }
     
     std::ifstream jsonFile(jsonFileName);
     
-    //Checking if file can be opened
-    if (!jsonFile)
-        throw std::runtime_error("Cannot open file: " + jsonFileName);
+    if (!jsonFile){
+        throw std::runtime_error("Cannot open file: \"" + jsonFileName + "\"");
+    }
     
     nlohmann::json jsonReader;
 
-    //Trying to parse file as json
     try{
         jsonFile >> jsonReader;
     }
     catch(const nlohmann::json::parse_error& e){
-        throw std::runtime_error("JSON parse error in " + jsonFileName + ": " + e.what());
+        throw std::runtime_error("JSON parse error in \"" + jsonFileName + "\": " + e.what());
     }
     
-    //Checking if "colors" array exists and is indeed an array
-    if (!jsonReader.contains("colors") || !jsonReader["colors"].is_array())
-        throw std::runtime_error("Invalid JSON structure: missing 'colors' array in " + jsonFileName);
-
-    //Checking general structure of color pair [[r,g,b], [r,g,b]]
-    for (const auto &arr : jsonReader["colors"]){
-        if (!arr.is_array() || arr.size() != 2 ||
-            !arr[0].is_array() || arr[0].size() != 3 ||
-            !arr[1].is_array() || arr[1].size() != 3){
-            continue; //Ignore invalid color pair
-        }
-        
-        //Checking values in each color (integers from 0 to 255)
-        bool colorIsValid = true;
-        for (const auto &color : arr){
-            for (const auto &val : color){
-                if (!val.is_number_integer() || val < 0 || val > 255){
-                    colorIsValid = false;
-                    break;
-                }
-            }
-            if (!colorIsValid) break;
-        }
-        if (!colorIsValid) continue; //Ignore this color pair and go to the next one
-
-        //If everything is fine, save this color pair
-        colorPairs.emplace_back(std::array<Color, 2>{{
-            {arr[0][0], arr[0][1], arr[0][2], 255},
-            {arr[1][0], arr[1][1], arr[1][2], 255}
-        }});
+    //Checking if "cursor" array exists
+    if (!jsonReader.contains("cursor")){
+        throw std::runtime_error("Invalid JSON structure: missing \"cursor\" array in \"" + jsonFileName + "\"");
     }
-    if (colorPairs.size() < 1)
-        throw std::runtime_error("No valid color pairs in " + jsonFileName);
+
+    if (ColorIsValid(jsonReader["cursor"])){
+        cursorColor = {
+            jsonReader["cursor"][0],
+            jsonReader["cursor"][1],
+            jsonReader["cursor"][2],
+            255
+        };
+    }
+    else{
+        throw std::runtime_error("Invalid \"cursor\" array in \"" + jsonFileName + "\"");
+    }
+
+    //Checking if "body" array exists and is indeed an array
+    if (!jsonReader.contains("body")){
+        throw std::runtime_error("Invalid JSON structure: missing \"body\" array in \"" + jsonFileName + "\"");
+    }
+    
+    if (!jsonReader["body"].is_array()){
+        throw std::runtime_error("Invalid JSON structure: \"body\" is not an array in \"" + jsonFileName + "\"");
+    }
+
+    LoadValidColorPairsFrom(jsonReader["body"]);
+
+    if (colorPairs.size() < 1){
+        throw std::runtime_error("No valid color pairs in \"" + jsonFileName + "\"");
+    }
     
     curr = RANDOM_VALUE;
 }
@@ -91,4 +116,5 @@ void ColorController::SwitchToNextColor(){
     curr = next;
 }
 
+Color ColorController::GetCursorColor() const{ return cursorColor; }
 Color ColorController::GetColorFor(const uint segmentIndex) const{ return colorCache[segmentIndex]; }

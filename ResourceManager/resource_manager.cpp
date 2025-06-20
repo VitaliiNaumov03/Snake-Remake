@@ -1,10 +1,10 @@
 #include "resource_manager.hpp"
 
-#define FOOD "Resources/apple.png"
-#define BIG_FOOD "Resources/golden apple.png"
-#define POISON "Resources/poison.png"
-#define BACKGROUND_TOP "Resources/background top.png"
-#define BACKGROUND_BOTTOM "Resources/background bottom.png"
+#define FOOD "Resources/Images/apple.png"
+#define BIG_FOOD "Resources/Images/golden apple.png"
+#define POISON "Resources/Images/poison.png"
+#define BACKGROUND_TOP "Resources/Images/background top.png"
+#define BACKGROUND_BOTTOM "Resources/Images/background bottom.png"
 
 ResourceManager::~ResourceManager(){
     for (auto &[id, texture] : textureMap){
@@ -27,26 +27,25 @@ ResourceManager &ResourceManager::GetInstance(){
     return instance;
 }
 
-Image ResourceManager::LoadI(const std::string &fileName){
+void ResourceManager::LoadI(TextureID id, const std::string &fileName){
+    std::lock_guard<std::mutex> lock(mtx);
     if (!FileExists(fileName.c_str()))
         throw std::runtime_error(fileName + " doesn't exist");
         
     Image image = LoadImage(fileName.c_str());
-
     if (!IsImageValid(image))
-        throw std::runtime_error(fileName + "is not valid");
+        throw std::runtime_error(fileName + "is not valid image");
 
-    return image;
+    imageMap[id] = image;
 }
 
 void ResourceManager::PreloadGameImages(){
-    std::lock_guard<std::mutex> lock(mtx);
     imageMap.reserve(5);
-    imageMap[TextureID::Food] = LoadI(FOOD);
-    imageMap[TextureID::BigFood] = LoadI(BIG_FOOD);
-    imageMap[TextureID::Poison] = LoadI(POISON);
-    imageMap[TextureID::BackgroundTop] = LoadI(BACKGROUND_TOP);
-    imageMap[TextureID::BackgroundBottom] = LoadI(BACKGROUND_BOTTOM);
+    LoadI(TextureID::Food, FOOD);
+    LoadI(TextureID::BigFood, BIG_FOOD);
+    LoadI(TextureID::Poison, POISON);
+    LoadI(TextureID::BackgroundTop, BACKGROUND_TOP);
+    LoadI(TextureID::BackgroundBottom, BACKGROUND_BOTTOM);
 }
 
 void ResourceManager::LoadTexturesFromImages(TextureFilter filter){
@@ -69,7 +68,7 @@ void ResourceManager::LoadTextureFromFile(TextureID id, const std::string &fileN
 
     std::unique_lock<std::mutex> lock(mtx);
 
-    if (textureMap.find(id) == textureMap.end()){ //If texture hasn't been loaded yet
+    if (textureMap.find(id) == textureMap.end() && imageMap.find(id) == imageMap.end()){ //If texture hasn't been loaded yet
         lock.unlock();
         Texture2D texture = LoadTexture(fileName.c_str());
         if (!IsTextureValid(texture))
