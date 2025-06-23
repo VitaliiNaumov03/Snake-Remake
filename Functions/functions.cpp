@@ -58,7 +58,7 @@ void Intro(std::vector<std::future<void>*> loadersToTrack){
 
     while (!WindowShouldClose()){
         if (userWantsToSkip){
-            if (AllLoadersFinished(loadersToTrack)) return;
+            if (AllLoadersFinished(loadersToTrack)) currState = DONE;
         }
         else
             userWantsToSkip = GetKeyPressed() || IsMouseButtonPressed(MOUSE_BUTTON_LEFT) || IsMouseButtonPressed(MOUSE_BUTTON_RIGHT);

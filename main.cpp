@@ -1,11 +1,15 @@
+#ifndef __APPLE__
 #include "Functions/icon32.h"
+#endif
 #include "Functions/functions.hpp"
 
 int main(){
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(0, 0, "Snake Remake");
     ResizeWindow(1.5f, 1, 1);
+    #ifndef __APPLE__
     SetIcon();
+    #endif
     SetTargetFPS(GetMonitorRefreshRate(GetCurrentMonitor()));
     
     std::future<void> imageLoader = std::async(std::launch::async,
