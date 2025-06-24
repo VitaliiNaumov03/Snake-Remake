@@ -5,7 +5,6 @@ https://github.com/user-attachments/assets/d9528d0a-d32d-496e-b468-b792f289f386
 ## About
 
 This was my pet project and, at the same time, my coursework at the university.  
-
 It's called "Remake" because it's an improved version of my snake game from the 1st year that looked like this:  
 
 ![image](https://github.com/user-attachments/assets/8683c484-8c78-4dfe-85a4-db2c35c166f0)
