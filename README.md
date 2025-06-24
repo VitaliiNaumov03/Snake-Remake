@@ -1,6 +1,6 @@
 # Snake Remake
 
-https://github.com/user-attachments/assets/98068975-f146-4a58-98b8-93df47ea64d7
+<video src="https://github.com/user-attachments/assets/98068975-f146-4a58-98b8-93df47ea64d7" width="500" autoplay loop muted playsinline></video>
 
 ## About
 
@@ -8,7 +8,7 @@ This was my pet project and, at the same time, my coursework at the university.
 
 It's called "Remake" because it's an improved version of my snake game from the 1st year that looked like this:  
 
-![image](https://github.com/user-attachments/assets/5841ae6c-147f-4871-9f45-017c49af53ee)
+<img src="https://github.com/user-attachments/assets/5841ae6c-147f-4871-9f45-017c49af53ee" width="500">
 
 ## Key features
 
