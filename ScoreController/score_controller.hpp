@@ -2,7 +2,7 @@
 
 #include "../RayTools/raytools.hpp"
 #include <cstdint>
-#include <cstring>
+#include <string>
 
 class ScoreController{
 private:
@@ -14,6 +14,8 @@ private:
     uint16_t currScore;
     uint16_t bestScore;
     bool bestScoreChanged;
+    
+    std::string GetSaveFilePath() const;
 public:
     static ScoreController &GetInstance();
     ScoreController &operator+=(const uint value);

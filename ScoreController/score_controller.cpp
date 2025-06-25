@@ -1,6 +1,7 @@
 #include "score_controller.hpp"
+#include <filesystem>
 
-#define SAVE_FILE_PATH "Resources/BestScore.snk"
+#define SAVE_FILE_NAME "BestScore.snk"
 
 ScoreController::ScoreController() : currScore(0), bestScore(0), bestScoreChanged(false){}
 
@@ -21,11 +22,29 @@ ScoreController &ScoreController::operator+=(const uint value){
 
 bool ScoreController::BestScoreChanged() const{ return bestScoreChanged; }
 
+//Returns full save file path based on current OS
+std::string ScoreController::GetSaveFilePath() const{
+#ifdef _WIN32
+    const char* userProfile = std::getenv("USERPROFILE");
+    std::filesystem::path saveDir = std::filesystem::path(userProfile) / "Documents" / "My Games" / "Snake Remake";
+#elif __APPLE__
+    const char* home = std::getenv("HOME");
+    std::filesystem::path saveDir = std::filesystem::path(home) / "Library" / "Application Support" / "Snake Remake";
+#else
+    const char* home = std::getenv("HOME");
+    std::filesystem::path saveDir = std::filesystem::path(home) / ".local" / "share" / "Snake Remake";
+#endif
+
+    std::filesystem::create_directories(saveDir);
+    return (saveDir / SAVE_FILE_NAME).string();
+}
+
 void ScoreController::LoadBestScore(){
-    if (!FileExists(SAVE_FILE_PATH)) return;
+    const auto saveFilePath = GetSaveFilePath();
+    if (!FileExists(saveFilePath.c_str())) return;
 
     int dataSize = 0;
-    unsigned char* data = LoadFileData(SAVE_FILE_PATH, &dataSize);
+    unsigned char* data = LoadFileData(saveFilePath.c_str(), &dataSize);
 
     if (data && dataSize == sizeof(uint16_t)) {
         bestScore = *reinterpret_cast<uint16_t*>(data);
@@ -34,7 +53,7 @@ void ScoreController::LoadBestScore(){
 }
 
 void ScoreController::WriteBestScore(){
-    SaveFileData(SAVE_FILE_PATH, &bestScore, sizeof(bestScore));
+    SaveFileData(GetSaveFilePath().c_str(), &bestScore, sizeof(bestScore));
 }
 
 void ScoreController::ResetCurrentScore(){ 
